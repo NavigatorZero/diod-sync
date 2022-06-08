@@ -17,5 +17,6 @@ use Illuminate\Support\Facades\Route;
 //    return view('welcome');
 //});
 
-Route::get('/auth', [\App\Http\Controllers\ApiController::class, 'simaAuth']);
+Route::get('/getStocks', [\App\Http\Controllers\ApiController::class, 'getStocks'])->name('api.get-stocks');
 Route::get('/calc', [\App\Http\Controllers\ApiController::class, 'calc']);
+Route::get('/', [\App\Http\Controllers\ApiController::class, 'index']);

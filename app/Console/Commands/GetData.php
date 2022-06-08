@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class GetData extends Command
 {
@@ -13,7 +15,7 @@ class GetData extends Command
      *
      * @var string
      */
-    protected $signature = 'diod:parse';
+    protected $signature = 'diod:sync';
 
     /**
      * The console command description.
@@ -31,6 +33,13 @@ class GetData extends Command
      */
     public function handle()
     {
+        $this->output->write('hello world');
+        setlocale(LC_TIME, 'ru_RU.UTF-8');
+        date_default_timezone_set('Asia/Yekaterinburg');
+        $rememberTimeInSeconds = 360000;
+        Cache::put('last_sync', Carbon::now()->format('Y-m-d h:i:s'), $rememberTimeInSeconds);
+
+        return;
         $ozon = new Ozon();
         $sima = new Sima();
 

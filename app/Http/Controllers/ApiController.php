@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class ApiController extends Controller
 {
 
-    public function simaAuth(Request $request, Ozon $ozon, Sima $sima): BinaryFileResponse
+    public function getStocks(Request $request, Ozon $ozon, Sima $sima): BinaryFileResponse
     {
         return Excel::download(new StocksExport(), 'stocks.xlsx');
 
@@ -56,6 +56,11 @@ class ApiController extends Controller
     public function calc()
     {
 
+    }
+
+    public function index()
+    {
+        return view('index');
     }
 
 }
