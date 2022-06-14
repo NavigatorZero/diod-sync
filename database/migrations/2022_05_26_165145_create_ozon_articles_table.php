@@ -14,7 +14,8 @@ return new class extends Migration {
     {
         Schema::create('ozon_articles', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('article', false, true);
+            $table->integer('article', false, true);
+            $table->integer('ozon_product_id', false, true);
             $table->string('name');
             $table->float('product_volume');
             $table->float('product_weight');

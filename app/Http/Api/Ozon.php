@@ -5,6 +5,7 @@ namespace App\Http\Api;
 
 use App\Models\OzonArticle;
 use Illuminate\Console\OutputStyle;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -37,7 +38,7 @@ class Ozon
 
         $this->reportKey = $result->json()['result']['code'];
         //need time to generate report
-        sleep(300);
+        sleep(400);
         $output->writeln("Getting and parsing Ozon report...");
         $this->postReportInfo();
     }
@@ -73,6 +74,7 @@ class Ozon
                     $weight = isset($vendorItem[16]) ? str_replace(['"', "'"], "", $vendorItem[16]) : 0;
                     $items[] = [
                         'article' => $vendorCode,
+                        'ozon_product_id' => (int)$vendorItem[1],
                         'name' => $vendorItem[5] ?? "",
                         'product_volume' => (float)$volume,
                         'product_weight' => (float)$weight
@@ -86,5 +88,39 @@ class Ozon
         } catch (\Exception $exception) {
             var_dump($exception);
         }
+    }
+
+
+    function sendStocks(OutputStyle $outputStyle)
+    {
+        $outputStyle->writeln("Sending stocks...");
+        DB::table("ozon_articles")
+            ->orderBy('id')
+            ->chunk(100, function (Collection $chunk) use ($outputStyle) {
+
+                $res = [];
+
+                $chunk->map(function ($item) use (&$res) {
+                    $res[] = [
+                        "offer_id" => '66' . $item->article . '02',
+                        "product_id" => $item->ozon_product_id,
+                        "stock" => $item->sima_stocks,
+                        "warehouse_id" => 21858285092000
+                    ];
+                });
+                try {
+                    $res = Http::withHeaders(
+                        self::HEADERS
+                    )
+                        ->asJson()
+                        ->post(self::API_URL . '/v2/products/stocks',
+                            [
+                                "stocks" => $res,
+                            ]);
+
+                } catch (\Exception $exception) {
+                    $outputStyle->write($exception->getMessage());
+                }
+            });
     }
 }

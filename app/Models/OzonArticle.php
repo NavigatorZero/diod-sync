@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  *  App\User
  * @property string $name
  * @property integer $article
+ * @property integer $ozon_product_id
  * @property float $product_volume,
  * @property float $product_weight,
  * @property int $sima_stocks,

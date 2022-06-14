@@ -46,6 +46,7 @@ class GetData extends Command
         }
 
         $sima->getStocks($this->output);
+        $ozon->sendStocks($this->output);
 
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');
