@@ -101,10 +101,23 @@ class Ozon
                 $res = [];
 
                 $chunk->map(function ($item) use (&$res) {
+                    $stocks = 0;
+
+                    if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
+                        $stocks = 2;
+                    }
+
+                    if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
+                        $stocks = 5;
+                    }
+
+                    if ($item->sima_stocks > 15) {
+                        $stocks = 10;
+                    }
                     $res[] = [
                         "offer_id" => '66' . $item->article . '02',
                         "product_id" => $item->ozon_product_id,
-                        "stock" => $item->sima_stocks,
+                        "stock" => $stocks === 0 ? '0' : $stocks,
                         "warehouse_id" => 21858285092000
                     ];
                 });
