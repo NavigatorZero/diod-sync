@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use App\Models\OzonArticle;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -39,12 +40,16 @@ class GetData extends Command
         $sima = new Sima();
 
         if ($this->needToDownload) {
-           $ozon->generateReport($this->output);
+            $ozon->generateReport($this->output);
             $sima->getItems($this->output);
         }
 
-        //  $sima->getStocks($this->output);
-          $ozon->sendStocks($this->output);
+        if (OzonArticle::whereNull("sima_id")->count('*') > 300) {
+            $this->output->writeln("getting Sima goods again to get missing items..");
+            $sima->getItems($this->output);
+        }
+
+        $ozon->sendStocks($this->output);
 
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');

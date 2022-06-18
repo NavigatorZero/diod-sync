@@ -18,6 +18,8 @@ class Ozon
         'Api-Key' => '81d5f89e-c7a9-4046-aa24-d11944654ed7'
     ];
 
+    private const CATEGORIES = [];
+
     public string $reportKey = '';
 
     function generateReport(OutputStyle $output)
@@ -74,9 +76,10 @@ class Ozon
                 if ($vendorCode !== 0) {
                     $volume = isset($vendorItem[15]) ? str_replace(['"', "'"], "", $vendorItem[15]) : 0;
                     $weight = isset($vendorItem[16]) ? str_replace(['"', "'"], "", $vendorItem[16]) : 0;
+                    $productId = isset($vendorItem[1]) ? str_replace(['"', "'"], "", $vendorItem[1]) : 0;
                     $items[] = [
                         'article' => $vendorCode,
-                        'ozon_product_id' => (int)$vendorItem[1],
+                        'ozon_product_id' => (int)$productId,
                         'name' => $vendorItem[5] ?? "",
                         'product_volume' => (float)$volume,
                         'product_weight' => (float)$weight
@@ -97,6 +100,7 @@ class Ozon
     {
         $outputStyle->writeln("Sending stocks...");
         DB::table("ozon_articles")
+            ->whereNotNull("stocks")
             ->orderBy('id')
             ->chunk(100, function (Collection $chunk) use ($outputStyle) {
 
@@ -271,5 +275,87 @@ class Ozon
                     $maxPrice = 1400;
                 }
             });
+    }
+
+
+    function calcIncome()
+    {
+        OzonArticle::all()
+            ->map(function (OzonArticle $ozonArticle) {
+                $wholeasale = $ozonArticle->sima_wholesale_price;
+                $multiplicator = null;
+
+                if ($wholeasale < 5) {
+                    $multiplicator = 7000;
+                } else if ($wholeasale > 5 and $wholeasale < 10) {
+                    $multiplicator = 5000;
+                } else if ($wholeasale > 10 and $wholeasale < 20) {
+                    $multiplicator = 2500;
+                } else if ($wholeasale > 20 and $wholeasale < 30) {
+                    $multiplicator = 1500;
+                } else if ($wholeasale > 30 and $wholeasale < 40) {
+                    $multiplicator = 1000;
+                } else if ($wholeasale > 40 and $wholeasale < 50) {
+                    $multiplicator = 750;
+                } else if ($wholeasale > 50 and $wholeasale < 75) {
+                    $multiplicator = 600;
+                } else if ($wholeasale > 75 and $wholeasale < 100) {
+                    $multiplicator = 500;
+                } else if ($wholeasale > 100 and $wholeasale < 150) {
+                    $multiplicator = 250;
+                } else if ($wholeasale > 150 and $wholeasale < 200) {
+                    $multiplicator = 200;
+                } else if ($wholeasale > 200 and $wholeasale < 250) {
+                    $multiplicator = 175;
+                } else if ($wholeasale > 250 and $wholeasale < 300) {
+                    $multiplicator = 150;
+                } else if ($wholeasale > 300 and $wholeasale < 400) {
+                    $multiplicator = 100;
+                } else if ($wholeasale > 400 and $wholeasale < 500) {
+                    $multiplicator = 80;
+                } else if ($wholeasale > 500 and $wholeasale < 750) {
+                    $multiplicator = 75;
+                } else if ($wholeasale > 750 and $wholeasale < 1000) {
+                    $multiplicator = 70;
+                } else if ($wholeasale > 1000 and $wholeasale < 1500) {
+                    $multiplicator = 60;
+                } else if ($wholeasale > 1500 and $wholeasale < 2000) {
+                    $multiplicator = 50;
+                } else if ($wholeasale > 2000 and $wholeasale < 2500) {
+                    $multiplicator = 40;
+                } else if ($wholeasale > 2500 and $wholeasale < 3000) {
+                    $multiplicator = 40;
+                } else if ($wholeasale > 3000 and $wholeasale < 4000) {
+                    $multiplicator = 35;
+                } else if ($wholeasale > 4000 and $wholeasale < 5000) {
+                    $multiplicator = 35;
+                } else if ($wholeasale > 5000 and $wholeasale < 6000) {
+                    $multiplicator = 35;
+                } else if ($wholeasale > 6000 and $wholeasale < 7500) {
+                    $multiplicator = 30;
+                } else if ($wholeasale > 7500 and $wholeasale < 10000) {
+                    $multiplicator = 30;
+                } else if ($wholeasale > 10000 and $wholeasale < 12500) {
+                    $multiplicator = 30;
+                } else if ($wholeasale > 12500 and $wholeasale < 15000) {
+                    $multiplicator = 30;
+                } else if ($wholeasale > 15000 and $wholeasale < 20000) {
+                    $multiplicator = 30;
+                } else if ($wholeasale > 20000 and $wholeasale < 25000) {
+                    $multiplicator = 27;
+                } else if ($wholeasale > 25000 and $wholeasale < 30000) {
+                    $multiplicator = 25;
+                } else if ($wholeasale > 30000) {
+                    $multiplicator = 25;
+                }
+
+                $income = $wholeasale + $wholeasale / 100 * $multiplicator;
+
+                $incomeFull = $income + 0.93 * $ozonArticle->product_volume + 70;
+
+                $priceBefore = $incomeFull * ($incomeFull / 100 * 115);
+                //   $fbs = $incomeFull
+            });
+
     }
 }

@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 
 /**
- *  App\User
+ *  App\Models\OzonArticle
  * @property string $name
  * @property integer $article
  * @property integer $ozon_product_id
  * @property float $product_volume,
  * @property float $product_weight,
  * @property int $sima_stocks,
+ * @property int $sima_wholesale_price,
  * @mixin \Eloquent
  *
  */
@@ -34,4 +35,12 @@ class OzonArticle extends Model
         'product_weight',
         'article'
     ];
+
+    /**
+     * Get the phone associated with the user.
+     */
+    public function price()
+    {
+        return $this->hasOne(Price::class);
+    }
 }

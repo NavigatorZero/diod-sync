@@ -34,6 +34,7 @@ class Sima
 
         DB::table("ozon_articles")
             ->orderBy('id')
+            ->whereNull("sima_id")
             ->chunk(100, function (Collection $chunk) use ($output, &$barcodes, &$counter) {
                 try {
                     $barcodesStr = '';
