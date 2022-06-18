@@ -39,14 +39,12 @@ class GetData extends Command
         $sima = new Sima();
 
         if ($this->needToDownload) {
-
-            $ozon->generateReport($this->output);
-
+           $ozon->generateReport($this->output);
             $sima->getItems($this->output);
         }
 
-        $sima->getStocks($this->output);
-        $ozon->sendStocks($this->output);
+        //  $sima->getStocks($this->output);
+          $ozon->sendStocks($this->output);
 
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');
