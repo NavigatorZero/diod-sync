@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property integer $ozon_product_id
  * @property float $product_volume,
  * @property float $product_weight,
+ * @property int $sima_id,
  * @property int $sima_stocks,
  * @property int $sima_wholesale_price,
  * @mixin \Eloquent

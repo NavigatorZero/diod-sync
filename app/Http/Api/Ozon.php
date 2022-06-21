@@ -68,7 +68,11 @@ class Ozon
         unset($goods[0]);
 
         try {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
             DB::table('ozon_articles')->truncate();
+            DB::table('price')->truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
             $items = [];
             for ($i = 1; $i <= count($goods); $i++) {
                 $vendorItem = explode(';', $goods[$i]);
@@ -100,7 +104,7 @@ class Ozon
     {
         $outputStyle->writeln("Sending stocks...");
         DB::table("ozon_articles")
-            ->whereNotNull("stocks")
+            ->whereNotNull("sima_stocks") // TODO add global scope
             ->orderBy('id')
             ->chunk(100, function (Collection $chunk) use ($outputStyle) {
 
@@ -354,8 +358,14 @@ class Ozon
                 $incomeFull = $income + 0.93 * $ozonArticle->product_volume + 70;
 
                 $priceBefore = $incomeFull * ($incomeFull / 100 * 115);
-                //   $fbs = $incomeFull
+                $fbs = $incomeFull * ($incomeFull / 100 * 109);
             });
+
+    }
+
+
+    function calcCommision()
+    {
 
     }
 }

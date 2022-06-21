@@ -14,7 +14,15 @@ return new class extends Migration {
     {
         Schema::create('price', function (Blueprint $table) {
             $table->id();
-            $table->smallInteger('type');
+            $table->float("commision")->nullable();
+            $table->float("price_after")->nullable();
+            $table->float("fbs")->nullable();
+            $table->float("min_price")->nullable();
+            $table->float("last_mile")->nullable();
+
+            $table->integer("article_id", false, true)->nullable();
+
+            $table->foreign("article_id")->references("id")->on("ozon_articles")->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -26,6 +34,6 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists('reports');
+        Schema::dropIfExists('price');
     }
 };

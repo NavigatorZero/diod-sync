@@ -6,8 +6,9 @@ namespace App\Http\Api;
 
 use App\Models\OzonArticle;
 use Exception;
+use GuzzleHttp\Exception\ConnectException;
 use Illuminate\Console\OutputStyle;
-use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -27,15 +28,12 @@ class Sima
     {
 
         $output->writeln("getting Sima goods..");
-        $output->progressStart(OzonArticle::query()->count());
-
-        $barcodes = [];
-        $counter = 0;
-
+        $output->progressStart(OzonArticle::query()->whereNull("sima_id")->count());
+        
         DB::table("ozon_articles")
             ->orderBy('id')
             ->whereNull("sima_id")
-            ->chunk(100, function (Collection $chunk) use ($output, &$barcodes, &$counter) {
+            ->chunk(100, function (Collection $chunk) use ($output) {
                 try {
                     $barcodesStr = '';
                     /** @var OzonArticle $item */
@@ -43,54 +41,43 @@ class Sima
                         $barcodesStr .= $item->article . ',';
                     }
 
-                    $barcodes[] = $barcodesStr;
+                    $response = Http::connectTimeout(30)
+                        ->retry(3, 1000, function ($exception, $request) {
+                            return $exception instanceof ConnectionException;
+                        })
+                        ->withHeaders([
+                            "Authorization" => "Bearer " . self::API_KEY
+                        ])
+                        ->get('https://www.sima-land.ru/api/v3/item',
+                            [
+                                'per-page' => 100,
+                                'sid' => substr_replace($barcodesStr, "", -1),
+                                'expand' => 'stocks'
+                            ]);
 
-                    if ($counter === 15) {
-                        $responses = Http::pool(function (Pool $pool) use ($barcodes) {
-                            foreach ($barcodes as $barcode) {
-                                $pool->timeout(100000)
-                                    ->withHeaders([
-                                        "Authorization" => "Bearer " . self::API_KEY
-                                    ])
-                                    ->get('https://www.sima-land.ru/api/v3/item',
-                                        [
-                                            'per-page' => 100,
-                                            'sid' => substr_replace($barcode, "", -1),
-                                            'expand' => 'stocks'
-                                        ]);
+                    if (!$response instanceof ConnectException) {
+                        DB::beginTransaction();
+                        foreach ($response->json()['items'] as $item) {
+
+                            $itemsOverall = 0;
+
+                            foreach ($item['stocks'] as $stock) {
+                                $itemsOverall += $stock['balance'];
                             }
-                        });
 
-                        foreach ($responses as $response) {
-                            if ($response->successful()) {
-                                DB::beginTransaction();
-                                foreach ($response->json()['items'] as $item) {
-
-                                    $itemsOverall = 0;
-
-                                    foreach ($item['stocks'] as $stock) {
-                                        $itemsOverall += $stock['balance'];
-                                    }
-
-                                    OzonArticle::query()
-                                        ->where('article', $item['sid'])
-                                        ->update([
-                                            'sima_price' => (float)$item['price'],
-                                            'sima_wholesale_price' => (float)$item['wholesale_price'],
-                                            'sima_order_minimum' => (int)$item['minimum_order_quantity'],
-                                            'sima_id' => (int)$item['id'],
-                                            'sima_stocks' => (int)$itemsOverall
-                                        ]);
-                                }
-                                DB::commit();
-                            } else {
-                                dump($response->status());
-                            }
+                            OzonArticle::query()
+                                ->where('article', $item['sid'])
+                                ->update([
+                                    'sima_price' => (float)$item['price'],
+                                    'sima_wholesale_price' => (float)$item['wholesale_price'],
+                                    'sima_order_minimum' => (int)$item['minimum_order_quantity'],
+                                    'sima_id' => (int)$item['id'],
+                                    'sima_stocks' => (int)$itemsOverall
+                                ]);
                         }
-                        $barcodes = [];
-                        $counter = 0;
+                        DB::commit();
                     } else {
-                        $counter++;
+                        $output->writeln("connection timeout");
                     }
 
                     $output->progressAdvance(100);

@@ -13,7 +13,7 @@ return new class extends Migration {
     public function up()
     {
         Schema::create('ozon_articles', function (Blueprint $table) {
-            $table->id();
+            $table->increments('id');
             $table->integer('article', false, true);
             $table->integer('ozon_product_id', false, true);
             $table->string('name');
