@@ -29,7 +29,7 @@ class Sima
 
         $output->writeln("getting Sima goods..");
         $output->progressStart(OzonArticle::query()->whereNull("sima_id")->count());
-        
+
         DB::table("ozon_articles")
             ->orderBy('id')
             ->whereNull("sima_id")
@@ -42,7 +42,7 @@ class Sima
                     }
 
                     $response = Http::connectTimeout(30)
-                        ->retry(3, 1000, function ($exception, $request) {
+                        ->retry(5, 10000, function ($exception, $request) {
                             return $exception instanceof ConnectionException;
                         })
                         ->withHeaders([

@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Excel\Import\CommissionImport;
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use App\Models\OzonArticle;
+use App\Models\Price;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
 
 class SyncCommision extends Command
 {
@@ -39,8 +39,23 @@ class SyncCommision extends Command
         $ozon = new Ozon();
         $sima = new Sima();
 
-        Excel::import(new CommissionImport, Storage::path('public/1.xlsx'), null, \Maatwebsite\Excel\Excel::XLSX);
-//
+        /** Create a new Xls Reader  **/
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $reader->setLoadSheetsOnly('Товары и цены');
+        $spreadsheet = $reader->load(Storage::path('public/1.xlsx'));
+
+        foreach ($spreadsheet->getActiveSheet()->toArray() as $row) {
+            $item = OzonArticle::where('article', '=', (int)substr(substr($row[0], 2), 0, -2))
+                ->first();
+
+            if ($item) {
+                $price = new Price(['commission' => (int)$row[6]]);
+                $price->article()->associate($item);
+                $price->save();
+            }
+        }
+
+
 //        setlocale(LC_TIME, 'ru_RU.UTF-8');
 //        date_default_timezone_set('Asia/Yekaterinburg');
 //        $rememberTimeInSeconds = 360000;

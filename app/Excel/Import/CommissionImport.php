@@ -2,11 +2,7 @@
 
 namespace App\Excel\Import;
 
-use App\Models\OzonArticle;
-use App\Models\Price;
-use Maatwebsite\Excel\Concerns\ToCollection;
-
-class CommissionImport implements ToCollection
+class CommissionImport
 {
 
     public function collection(\Illuminate\Support\Collection $rows)
