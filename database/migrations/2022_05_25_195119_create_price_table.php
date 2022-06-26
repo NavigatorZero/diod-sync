@@ -19,10 +19,8 @@ return new class extends Migration {
             $table->float("fbs")->nullable();
             $table->float("min_price")->nullable();
             $table->float("last_mile")->nullable();
-
-            $table->integer("article_id", false, true)->nullable();
-
-            $table->foreign("article_id")->references("id")->on("ozon_articles")->cascadeOnDelete();
+            $table->float("highway")->nullable();
+            $table->float('income')->nullable();
             $table->timestamps();
         });
     }

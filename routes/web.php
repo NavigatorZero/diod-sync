@@ -18,5 +18,7 @@ use Illuminate\Support\Facades\Route;
 //});
 
 Route::get('/getStocks', [\App\Http\Controllers\ApiController::class, 'getStocks'])->name('api.get-stocks');
+Route::post('/commission', [\App\Http\Controllers\ApiController::class, 'commission'])->name('api.post-commission');
+Route::get('/calcPrice', [\App\Http\Controllers\ApiController::class, 'calcPrice'])->name('api.get-price');
 Route::get('/calc', [\App\Http\Controllers\ApiController::class, 'calc']);
 Route::get('/', [\App\Http\Controllers\ApiController::class, 'index']);

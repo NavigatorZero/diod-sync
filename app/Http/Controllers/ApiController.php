@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Excel\Export\CalcExport;
 use App\Excel\Export\StocksExport;
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -53,9 +57,18 @@ class ApiController extends Controller
     }
 
 
-    public function calc()
+    public function commission(Request $req): Application|Factory|View
     {
+        if ($file = $req->file('excel_commission')) {
+            $file->storeAs('public/', "1.xlsx");
+        }
 
+        return view('index');
+    }
+
+    public function calcPrice()
+    {
+        return Excel::download(new CalcExport(), 'stocks.xlsx');
     }
 
     public function index()
