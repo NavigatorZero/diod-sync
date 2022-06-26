@@ -2,16 +2,24 @@
 
 namespace App\Excel\Import;
 
-class CommissionImport
+use App\Models\OzonArticle;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+
+class CommissionImport implements ToModel, WithChunkReading
 {
 
-    public function collection(\Illuminate\Support\Collection $rows)
+    public function model(array $row)
     {
-        foreach ($rows as $row) {
-            $item = OzonArticle::where('ozon_product_id', '=', substr(substr($row[0], 0, 2), 0, -2))
-                ->first();
+        $item = OzonArticle::where('article', '=', (int)substr(substr($row[0], 2), 0, -2))
+            ->first();
 
-            $item?->price()->save(new Price(['commission' => $row]));
-        }
+        $item?->price()->create(['commision' => (int)$row[6]]);
+
+    }
+
+    public function chunkSize(): int
+    {
+        return 1000;
     }
 }

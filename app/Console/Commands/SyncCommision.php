@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Models\OzonArticle;
+use App\Excel\Import\BaseCommisionImport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Writer\Exception;
 
 class SyncCommision extends Command
 {
@@ -33,18 +35,22 @@ class SyncCommision extends Command
     {
         $this->output->write('Sync commission started..');
         $start = microtime(true);
-
-        /** Create a new Xls Reader  **/
-        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $reader->setLoadSheetsOnly('Товары и цены');
-        $spreadsheet = $reader->load(Storage::path('public/1.xlsx'));
-
-        foreach ($spreadsheet->getActiveSheet()->toArray() as $row) {
-            $item = OzonArticle::where('article', '=', (int)substr(substr($row[0], 2), 0, -2))
-                ->first();
-
-            $item?->price()->create(['commision' => (int)$row[6]]);
+        try {
+            Excel::import(new BaseCommisionImport(), Storage::path('public/1.xlsx'));
+        } catch (Exception|\PhpOffice\PhpSpreadsheet\Exception $e) {
         }
+
+//        /** Create a new Xls Reader  **/
+//        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+//        $reader->setLoadSheetsOnly('Товары и цены');
+//        $spreadsheet = $reader->load(Storage::path('public/1.xlsx'));
+//
+//        foreach ($spreadsheet->getActiveSheet()->toArray() as $row) {
+//            $item = OzonArticle::where('article', '=', (int)substr(substr($row[0], 2), 0, -2))
+//                ->first();
+//
+//            $item?->price()->create(['commision' => (int)$row[6]]);
+//        }
 
 
         setlocale(LC_TIME, 'ru_RU.UTF-8');
