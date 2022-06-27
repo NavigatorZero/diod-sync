@@ -16,7 +16,7 @@ class GetData extends Command
      *
      * @var string
      */
-    protected $signature = 'diod:sync';
+    protected $signature = 'diod:sync {keyword}';
 
     /**
      * The console command description.
@@ -38,20 +38,21 @@ class GetData extends Command
         $start = microtime(true);;
         $ozon = new Ozon();
         $sima = new Sima();
+        $skip = $this->argument('keyword');;
 
-        if ($this->needToDownload) {
+
+        if (!$skip) {
             $ozon->generateReport($this->output);
             $sima->getItems($this->output);
-        }
-
-        for ($i = 1; $i <= (int)(OzonArticle::count() / 2000); $i++) {
-            if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
-                $this->output->writeln("getting Sima goods again to get missing items..");
-                $sima->getItems($this->output);
+            for ($i = 1; $i <= (int)(OzonArticle::count() / 2000); $i++) {
+                if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
+                    $this->output->writeln("getting Sima goods again to get missing items..");
+                    $sima->getItems($this->output);
+                }
             }
+            $ozon->sendStocks($this->output);
         }
 
-        $ozon->sendStocks($this->output);
         $this->call('diod:commission');
         $this->call('diod:calc');
         setlocale(LC_TIME, 'ru_RU.UTF-8');
