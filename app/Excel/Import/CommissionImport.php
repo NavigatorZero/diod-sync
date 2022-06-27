@@ -20,6 +20,6 @@ class CommissionImport implements ToModel, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 1000;
+        return 5;
     }
 }

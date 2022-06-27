@@ -44,7 +44,7 @@ class GetData extends Command
             $sima->getItems($this->output);
         }
 
-        for ($i = 1; $i <= (int)(OzonArticle::count() / 3000); $i++) {
+        for ($i = 1; $i <= (int)(OzonArticle::count() / 2000); $i++) {
             if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
                 $this->output->writeln("getting Sima goods again to get missing items..");
                 $sima->getItems($this->output);

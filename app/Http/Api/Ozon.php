@@ -368,12 +368,12 @@ class Ozon
                 }
 
                 $ozonArticle->price()->updateOrCreate([
-                    'price_after' => $priceBefore,
+                    'price_after' => round($priceBefore, 2),
                     'fbs' => $fbs,
-                    'min_price' => $minPrice,
-                    'last_mile' => $lastMile,
-                    'highway' => $highway,
-                    'income' => $incomeFull
+                    'min_price' => round($minPrice, 2),
+                    'last_mile' => round($lastMile, 2),
+                    'highway' => round($highway, 2),
+                    'income' => round($incomeFull, 2)
                 ]);
             });
     }
