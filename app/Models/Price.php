@@ -43,6 +43,7 @@ class Price extends Model
         'fbs',
         'min_price',
         'last_mile',
+        'highway'
     ];
 
     public function article()

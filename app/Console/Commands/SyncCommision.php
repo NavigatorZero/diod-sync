@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Excel\Import\BaseCommisionImport;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
@@ -34,6 +35,8 @@ class SyncCommision extends Command
     public function handle()
     {
         $this->output->write('Sync commission started..');
+        DB::connection()->disableQueryLog();
+        DB::connection()->unsetEventDispatcher();
         $start = microtime(true);
         try {
             Excel::import(new BaseCommisionImport(), Storage::path('public/1.xlsx'));

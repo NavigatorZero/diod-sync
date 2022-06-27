@@ -68,7 +68,7 @@ class ApiController extends Controller
 
     public function calcPrice()
     {
-        return Excel::download(new CalcExport(), 'stocks.xlsx');
+        return Excel::download(new CalcExport(), 'prices.xlsx');
     }
 
     public function index()
