@@ -16,7 +16,7 @@ class BaseCommisionImport implements WithMultipleSheets, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 1000;
+        return 500;
     }
 }
 

@@ -38,17 +38,22 @@ class GetData extends Command
         $start = microtime(true);
         $ozon = new Ozon();
         $sima = new Sima();
+<<<<<<< HEAD
         $skip = $this->argument('keyword');
+=======
+        $skip = (bool)$this->argument('keyword');;
+>>>>>>> 8f6474f (testing)
 
 
-        if (!$skip) {
+        if ($skip) {
+	    $this->output->write("here");
             $ozon->generateReport($this->output);
             $sima->getItems($this->output);
-            for ($i = 1; $i <= (int)(OzonArticle::count() / 2000); $i++) {
-                if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
+            for ($i = 1; $i <= (int)(OzonArticle::count() / 100); $i++) {
+        //        if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
                     $this->output->writeln("getting Sima goods again to get missing items..");
                     $sima->getItems($this->output);
-                }
+         //       }
             }
             $ozon->sendStocks($this->output);
         }
