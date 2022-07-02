@@ -40,7 +40,7 @@ class Ozon
 
         $this->reportKey = $result->json()['result']['code'];
         //need time to generate report
-        sleep(600);
+        sleep(300);
         $output->writeln("Getting and parsing Ozon report...");
         $this->postReportInfo($output);
     }
@@ -74,7 +74,7 @@ class Ozon
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
             $items = [];
-            for ($i = 1; $i <= count($goods); $i++) {
+            for ($i = 1; $i <= 5000; $i++) {
                 $vendorItem = explode(';', $goods[$i]);
                 $vendorCode = strlen($vendorItem[0]) === 10 ? (int)substr($vendorItem[0], 2, 6) : (int)substr($vendorItem[0], 2, 7);
                 if ($vendorCode !== 0) {

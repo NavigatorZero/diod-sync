@@ -1,0 +1,10 @@
+#54 /var/www/web/sites/diod-parser/vendor/laravel/framework/src/Illuminate/Console/Command.php(121): Symfony\\Component\\Console\\Command\\Command->run()
+#55 /var/www/web/sites/diod-parser/vendor/symfony/console/Application.php(998): Illuminate\\Console\\Command->run()
+#56 /var/www/web/sites/diod-parser/vendor/symfony/console/Application.php(299): Symfony\\Component\\Console\\Application->doRunCommand()
+#57 /var/www/web/sites/diod-parser/vendor/symfony/console/Application.php(171): Symfony\\Component\\Console\\Application->doRun()
+#58 /var/www/web/sites/diod-parser/vendor/laravel/framework/src/Illuminate/Console/Application.php(102): Symfony\\Component\\Console\\Application->run()
+#59 /var/www/web/sites/diod-parser/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(129): Illuminate\\Console\\Application->run()
+#60 /var/www/web/sites/diod-parser/artisan(37): Illuminate\\Foundation\\Console\\Kernel->handle()
+#61 {main}
+"} 
+[2022-07-02 09:55:37] laravel.WARNING: substr(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/web/sites/diod-parser/app/Excel/Import/CommissionImport.php on line 16  
