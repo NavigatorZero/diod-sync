@@ -18,8 +18,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('diod:sync')
             ->timezone('Asia/Yekaterinburg')
-            ->dailyAt("23:11")
-            ->sendOutputTo(\Storage::path('../logs/laravel.log'))
+            ->dailyAt("14:45")
+            ->sendOutputTo(\Storage::path('../logs/sync.log'))
             ->onSuccess(function (Stringable $output) {
                 dump('has been synced');
             });

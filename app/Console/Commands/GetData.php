@@ -35,10 +35,10 @@ class GetData extends Command
     public function handle()
     {
         $this->output->write('Sync started..');
-        $start = microtime(true);;
+        $start = microtime(true);
         $ozon = new Ozon();
         $sima = new Sima();
-        $skip = $this->argument('keyword');;
+        $skip = $this->argument('keyword');
 
 
         if (!$skip) {
