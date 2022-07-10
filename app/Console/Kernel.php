@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('diod:sync')
+        $schedule->command('diod:sync true')
             ->timezone('Asia/Yekaterinburg')
             ->dailyAt("14:45")
             ->sendOutputTo(\Storage::path('../logs/sync.log'))
