@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+
         $schedule->command('diod:sync false')
             ->timezone('Asia/Yekaterinburg')
             ->dailyAt("10:41")
