@@ -5,9 +5,11 @@ namespace App\Console\Commands;
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
 use App\Models\OzonArticle;
+use App\Models\SimaArticle;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class GetData extends Command
 {
@@ -34,26 +36,22 @@ class GetData extends Command
      */
     public function handle()
     {
-        $this->output->write('Sync started..');
+        $this->output->write('Sync started in '. Carbon::now()->format('Y-m-d h:i:s'));
         $start = microtime(true);
         $ozon = new Ozon();
         $sima = new Sima();
-<<<<<<< HEAD
-        $skip = $this->argument('keyword');
-=======
-        $skip = (bool)$this->argument('keyword');;
->>>>>>> 8f6474f (testing)
+        $skip = (bool)$this->argument('keyword');
+        DB::table('ozon_articles')->update(['is_synced' => false]);
 
 
         if ($skip) {
-	    $this->output->write("here");
             $ozon->generateReport($this->output);
             $sima->getItems($this->output);
-            for ($i = 1; $i <= (int)(OzonArticle::count() / 100); $i++) {
-        //        if (OzonArticle::whereNull("sima_id")->count('*') > (int)(OzonArticle::count() / 100)) {
+            for ($i = 1; $i <= (int)(OzonArticle::count() / 1000); $i++) {
+                if (OzonArticle::where('is_synced',false)->count() > 100) {
                     $this->output->writeln("getting Sima goods again to get missing items..");
                     $sima->getItems($this->output);
-         //       }
+                }
             }
             $ozon->sendStocks($this->output);
         }

@@ -16,23 +16,15 @@ use Illuminate\Support\Facades\Http;
 class Sima
 {
 
-    private const API_URL = 'https://api-seller.ozon.ru';
-    private const HEADERS = [
-        'Client-Id' => '161605',
-        'Api-Key' => '81d5f89e-c7a9-4046-aa24-d11944654ed7'
-    ];
-
-    private const API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NTMyMjY4ODAsIm5iZiI6MTY1MzIyNjg4MCwiZXhwIjoxNjg0NzYyODgwLCJqdGkiOjM3NDk0NjR9.c0QNvrJfgkzWQhnkR0xwTn_fWcTRX2D1tlsIfwUjzv0';
-
     function getItems(OutputStyle $output): void
     {
 
         $output->writeln("getting Sima goods..");
-        $output->progressStart(OzonArticle::query()->whereNull("sima_id")->count());
+        $output->progressStart(OzonArticle::query()->where("is_synced", false)->count());
 
         DB::table("ozon_articles")
             ->orderBy('id')
-            ->whereNull("sima_id")
+            ->where("is_synced", false)
             ->chunk(100, function (Collection $chunk) use ($output) {
                 try {
                     $barcodesStr = '';
@@ -43,10 +35,10 @@ class Sima
 
                     $response = Http::connectTimeout(30)
                         ->retry(5, 10000, function ($exception, $request) {
-                            return $exception instanceof ConnectionException;
+                            return $exception instanceof Exception;
                         })
                         ->withHeaders([
-                            "Authorization" => "Bearer " . self::API_KEY
+                            "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
                         ])
                         ->get('https://www.sima-land.ru/api/v3/item',
                             [
@@ -72,7 +64,8 @@ class Sima
                                     'sima_wholesale_price' => (float)$item['wholesale_price'],
                                     'sima_order_minimum' => (int)$item['minimum_order_quantity'],
                                     'sima_id' => (int)$item['id'],
-                                    'sima_stocks' => (int)$itemsOverall
+                                    'sima_stocks' => (int)$itemsOverall,
+                                    'is_synced' => true
                                 ]);
                         }
                         DB::commit();
@@ -89,7 +82,8 @@ class Sima
     }
 
 
-    function getStocks(OutputStyle $output)
+    /** @deprecated  */
+    function getStocks(OutputStyle $output): void
     {
 
         $output->writeln("getting Sima stocks..");
@@ -101,7 +95,7 @@ class Sima
                 $chunk->map(function ($ozonArticle) use ($output) {
                     try {
                         $response = Http::acceptJson()->timeout(100000)->withHeaders([
-                            "Authorization" => "Bearer " . self::API_KEY
+                            "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
                         ])
                             ->get('https://www.sima-land.ru/api/v3/item/' . $ozonArticle->sima_id . '/',
                                 [

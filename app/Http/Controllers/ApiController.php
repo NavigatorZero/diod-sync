@@ -63,7 +63,7 @@ class ApiController extends Controller
             $file->storeAs('public/', "1.xlsx");
         }
 
-        return view('index');
+        return view('home');
     }
 
     public function calcPrice()
@@ -73,7 +73,7 @@ class ApiController extends Controller
 
     public function index()
     {
-        return view('index');
+        return view('home');
     }
 
 }

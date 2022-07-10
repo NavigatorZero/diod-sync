@@ -12,9 +12,11 @@
         "laravel/framework": "^9.11",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
+        "laravel/ui": "^3.4",
         "maatwebsite/excel": "^3.1",
         "phpoffice/phpspreadsheet": "^1.23",
-        "rap2hpoutre/fast-excel": "^3.2"
+        "rap2hpoutre/fast-excel": "^3.2",
+        "spresnac/laravel-create-user-cli": "^1.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.12",

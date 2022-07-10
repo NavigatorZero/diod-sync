@@ -19,8 +19,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $sima_stocks,
  * @property int $sima_wholesale_price,
  * @property int $id
+ * @property boolean $is_synced
  * @property int|null $sima_order_minimum
  * @property float|null $sima_price
+ * @property float|null $ozon_old_price
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Price|null $price
@@ -42,6 +44,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder|OzonArticle whereSimaWholesalePrice($value)
  * @method static Builder|OzonArticle whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property int|null $price_id
  */
 class OzonArticle extends Model
 {
@@ -58,8 +61,12 @@ class OzonArticle extends Model
         'name',
         'product_volume',
         'product_weight',
-        'article'
+        'article',
+        'ozon_product_id',
+        'is_synced',
+        'ozon_old_price'
     ];
+
 
     /**
      * Get the phone associated with the user.

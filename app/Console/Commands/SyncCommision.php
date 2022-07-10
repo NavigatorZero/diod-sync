@@ -58,9 +58,15 @@ class SyncCommision extends Command
                             ->first();
 
                         if ($item) {
-                            $this->output->writeln("item found");
-                            $item->price()->associate(Price::create(['commision' => (int)$comission]));
-                            $item->save();
+                            if (!$item->price()->first()) {
+                                $price = new Price(['commision' => (int)$comission]);
+                                $price->save();
+                                $item->price()->associate($price)->save();
+                            } else {
+                                $price = $item->price()->first();
+                                $price->commision = (int)$comission;
+                                $price->save();
+                            }
                         }
                     }
                 }

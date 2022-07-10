@@ -17,8 +17,12 @@ use Illuminate\Support\Facades\Route;
 //    return view('welcome');
 //});
 
-Route::get('/getStocks', [\App\Http\Controllers\ApiController::class, 'getStocks'])->name('api.get-stocks');
-Route::post('/commission', [\App\Http\Controllers\ApiController::class, 'commission'])->name('api.post-commission');
-Route::get('/calcPrice', [\App\Http\Controllers\ApiController::class, 'calcPrice'])->name('api.get-price');
-Route::get('/calc', [\App\Http\Controllers\ApiController::class, 'calc']);
-Route::get('/', [\App\Http\Controllers\ApiController::class, 'index']);
+Route::get('/getStocks', [\App\Http\Controllers\ApiController::class, 'getStocks'])->name('api.get-stocks')->middleware('auth');
+Route::post('/commission', [\App\Http\Controllers\ApiController::class, 'commission'])->name('api.post-commission')->middleware('auth');
+Route::get('/calcPrice', [\App\Http\Controllers\ApiController::class, 'calcPrice'])->name('api.get-price')->middleware('auth');
+Route::get('/calc', [\App\Http\Controllers\ApiController::class, 'calc'])->middleware('auth');
+Route::get('/', [\App\Http\Controllers\ApiController::class, 'index'])->middleware('auth');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

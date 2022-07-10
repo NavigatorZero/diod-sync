@@ -16,14 +16,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('diod:sync true')
+        $schedule->command('diod:sync false')
             ->timezone('Asia/Yekaterinburg')
-            ->dailyAt("14:45")
-<<<<<<< HEAD
+            ->dailyAt("10:41")
             ->sendOutputTo(\Storage::path('../logs/sync.log'))
-=======
-            ->sendOutputTo(\Storage::path('../logs/laravel.log'))
->>>>>>> 8f6474f (testing)
             ->onSuccess(function (Stringable $output) {
                 dump('has been synced');
             });

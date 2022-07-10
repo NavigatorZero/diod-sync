@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->id();
             $table->integer('article', false, true);
             $table->integer('ozon_product_id', false, true);
+            $table->float('ozon_old_price');
             $table->string('name');
             $table->float('product_volume');
             $table->float('product_weight');
@@ -24,10 +25,14 @@ return new class extends Migration {
             $table->float("sima_wholesale_price")->nullable();
             $table->bigInteger("sima_id")->nullable();
             $table->bigInteger("sima_stocks")->nullable();
+            $table->boolean('is_synced')->default(false);
 
             $table->bigInteger("price_id", false, true)->nullable();
 
             $table->foreign("price_id")->references("id")->on("price")->cascadeOnDelete();
+
+            $table->unique("article");
+            $table->unique("price_id");
 
             $table->timestamps();
         });

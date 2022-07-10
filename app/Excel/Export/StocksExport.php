@@ -3,6 +3,7 @@
 namespace App\Excel\Export;
 
 use App\Models\OzonArticle;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -50,6 +51,6 @@ class StocksExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        return OzonArticle::whereNotNull('sima_stocks')->get();
+        return OzonArticle::whereNotNull('sima_stocks')->where('is_synced' ,'=', true)->get();
     }
 }

@@ -30,6 +30,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder|Price whereMinPrice($value)
  * @method static Builder|Price wherePriceAfter($value)
  * @method static Builder|Price whereUpdatedAt($value)
+ * @property float|null $highway
+ * @property float|null $income
+ * @method static Builder|Price whereHighway($value)
+ * @method static Builder|Price whereIncome($value)
  */
 class Price extends Model
 {
