@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,11 +18,12 @@ use Illuminate\Support\Facades\Route;
 //    return view('welcome');
 //});
 
-Route::get('/getStocks', [\App\Http\Controllers\ApiController::class, 'getStocks'])->name('api.get-stocks')->middleware('auth');
-Route::post('/commission', [\App\Http\Controllers\ApiController::class, 'commission'])->name('api.post-commission')->middleware('auth');
-Route::get('/calcPrice', [\App\Http\Controllers\ApiController::class, 'calcPrice'])->name('api.get-price')->middleware('auth');
-Route::get('/calc', [\App\Http\Controllers\ApiController::class, 'calc'])->middleware('auth');
-Route::get('/', [\App\Http\Controllers\ApiController::class, 'index'])->middleware('auth');
+Route::get('/getStocks', [ApiController::class, 'getStocks'])->name('api.get-stocks')->middleware('auth');
+Route::post('/commission', [ApiController::class, 'commission'])->name('api.post-commission')->middleware('auth');
+Route::post('/changeSyncSettings', [ApiController::class, 'changeSyncSettings'])->name('api.post-sync-settings')->middleware('auth');
+Route::get('/calcPrice', [ApiController::class, 'calcPrice'])->name('api.get-price')->middleware('auth');
+Route::get('/calc', [ApiController::class, 'calc'])->middleware('auth');
+Route::get('/', [ApiController::class, 'index'])->middleware('auth');
 
 Auth::routes();
 

@@ -6,6 +6,7 @@ use App\Excel\Export\CalcExport;
 use App\Excel\Export\StocksExport;
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use App\Models\ObjectNotation;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -63,17 +64,29 @@ class ApiController extends Controller
             $file->storeAs('public/', "1.xlsx");
         }
 
-        return view('home');
+        return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value), "file_msg" => "Файл загружен успешно!"]);
     }
 
-    public function calcPrice()
+    public function calcPrice(): BinaryFileResponse
     {
         return Excel::download(new CalcExport(), 'prices.xlsx');
     }
 
-    public function index()
+    public function index(): Application|Factory|View
     {
-        return view('home');
+        return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value)]);
     }
 
+    public function changeSyncSettings(Request $req): Factory|View|Application
+    {
+        dump($req->all());
+        $jsonModel = ObjectNotation::where("key", "sync")->first();
+        $item = json_decode($jsonModel->value);
+        $item->first_sync = (int)$req->get("first_sync_input");
+        $item->second_sync = (int)$req->get("second_sync_input");
+        $jsonModel->value = json_encode($item);
+        $jsonModel->save();
+        
+        return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value), "msg" => "Настройки сохранены успешно!"]);
+    }
 }
