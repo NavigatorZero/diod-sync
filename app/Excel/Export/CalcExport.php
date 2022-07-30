@@ -14,6 +14,7 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
     public function headings(): array
     {
         return [
+            'Артикул',
             'ФБС',
             'Коммиссия',
             'Последняя Миля',
@@ -21,7 +22,7 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
             'Цена до',
             'Магистраль',
             'Цена на озон до синхронизации',
-            'Артикул'
+            'Наценка'
         ];
     }
 
@@ -31,6 +32,7 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
     public function map($row): array
     {
         return [
+            '66' . $row->article->article . '02',
             $row->fbs,
             $row->commision,
             $row->last_mile,
@@ -38,7 +40,7 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
             $row->price_after,
             $row->highway,
             $row->article->ozon_old_price,
-            '66' . $row->article->article . '02'
+            $row->income
         ];
     }
 

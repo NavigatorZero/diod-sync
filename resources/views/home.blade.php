@@ -73,6 +73,19 @@
                                     </div>
                                 </div>
                                 <div class="col-4 container">
+
+                                    <div class="d-flex">
+                                        @if($json->is_sync_in_progress === true)
+                                            <div class="alert alert-warning">
+                                                <small>Выполняется процесс синхронизации..</small>
+                                            </div>
+                                        @else
+                                            <div class="alert alert-primary">
+                                                <small>Синхронизация не выполняется</small>
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <form action="{{route('api.post-sync-settings')}}" method="post">
                                         @csrf
                                         <label for="customRange2" class="form-label">Время первой синхронизации</label>

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use App\Models\ObjectNotation;
 use App\Models\OzonArticle;
 use App\Models\SimaArticle;
 use Carbon\Carbon;
@@ -42,7 +43,11 @@ class GetData extends Command
         $sima = new Sima();
         $skip = (bool)$this->argument('keyword');
         DB::table('ozon_articles')->update(['is_synced' => false]);
-
+        $jsonModel = ObjectNotation::where("key", "sync")->first();
+        $json = json_decode($jsonModel->value);
+        $json->is_sync_in_progress = true;
+        $jsonModel->value = json_encode($json);
+        $jsonModel->save();
 
         if ($skip) {
             $ozon->generateReport($this->output);

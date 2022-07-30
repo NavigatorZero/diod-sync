@@ -95,6 +95,7 @@ class Ozon
                             $item->update($values);
                         } else {
                             $item = new OzonArticle();
+                            $item->article = $vendorCode;
                             $item->fill($values)->save();
                         }
                     }
@@ -164,15 +165,14 @@ class Ozon
         $minPrice = null;
         $maxPrice = null;
         $percent = null;
-        $price = null;
 
         if ($weight < 1) {
             $percent = 0.04;
-        } elseif ($weight > 1 && $weight < 3) {
-            $percent = 0.04;
-        } elseif ($weight > 3 && $weight < 10) {
+        } elseif ($weight >= 1 and $weight < 3) {
+            $percent = 0.05;
+        } elseif ($weight >= 3 and $weight < 10) {
             $percent = 0.055;
-        } elseif ($weight > 10 && $weight < 25) {
+        } elseif ($weight >= 10 and $weight < 25) {
             $percent = 0.06;
         } elseif ($weight > 25) {
             $percent = 0.08;
@@ -285,19 +285,22 @@ class Ozon
             $maxPrice = 1400;
         }
 
-        if ($income < $minPrice) {
-            return $minPrice;
-        } elseif ($income > $maxPrice) {
-            return $maxPrice;
+        $highway = $income * $percent;
+
+
+        if ($highway < $minPrice) {
+            return $minPrice * 1.3;
+        } elseif ($highway > $maxPrice) {
+            return $maxPrice * 1.3;
         }
-        return $income * $percent;
+        return $highway * 1.3;
     }
 
 
     function calcIncome()
     {
         OzonArticle::with("price")
-            ->where('is_synced',true)->where("article", "=",2809239)
+            ->where('is_synced', true)
             ->get()
             ->map(function (OzonArticle $ozonArticle) {
                 $wholeasale = $ozonArticle->sima_wholesale_price;
@@ -367,10 +370,10 @@ class Ozon
                     $multiplicator = 25;
                 }
                 $income = $wholeasale + $wholeasale / 100 * $multiplicator;
-                $lastMile = $this->calcLastMile($income);
-                $highway = $this->getOzonHighway($ozonArticle, $income);
                 $incomeFull = $income + 0.93 * $ozonArticle->product_volume + 70;
-                $priceBefore = $incomeFull * 1.15;
+                $lastMile = $this->calcLastMile($incomeFull);
+                $highway = $this->getOzonHighway($ozonArticle, $incomeFull);
+                $priceBefore = $incomeFull + $incomeFull * 1.15;
                 $fbs = $incomeFull * (($ozonArticle->price->commision ?? 9) / 100) + 25 + $lastMile + $highway;
 
                 $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 0.93 * $ozonArticle->product_volume + 70 + (40 + $highway);

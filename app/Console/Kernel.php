@@ -21,8 +21,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('diod:sync false')
             ->timezone('Asia/Yekaterinburg')->hourlyAt("00")->when(function () {
-                return Carbon::now()->hour === json_decode(ObjectNotation::where("key", "sync")->first()->value)->first_sync
-                    || Carbon::now()->hour === json_decode(ObjectNotation::where("key", "sync")->first()->value)->second_sync;
+                return Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->first_sync
+                    || Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->second_sync;
             })
             ->sendOutputTo(\Storage::path('../logs/sync.log'))
             ->onSuccess(function (Stringable $output) {

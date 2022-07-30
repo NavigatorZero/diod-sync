@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Api\Ozon;
+use App\Models\ObjectNotation;
 use Illuminate\Console\Command;
 
 class CalcPrice extends Command
@@ -41,7 +42,11 @@ class CalcPrice extends Command
         $rememberTimeInSeconds = 360000;
         $this->output->write('Sync finished..');
         $this->output->write('sync elapsed time: ' . round((microtime(true) - $start) / 60, 4) . " min");
-
+        $jsonModel = ObjectNotation::where("key", "sync")->first();
+        $json = json_decode($jsonModel->value);
+        $json->is_sync_in_progress = false;
+        $jsonModel->value = json_encode($json);
+        $jsonModel->save();
         return 0;
     }
 }
