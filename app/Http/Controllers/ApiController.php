@@ -79,14 +79,13 @@ class ApiController extends Controller
 
     public function changeSyncSettings(Request $req): Factory|View|Application
     {
-        dump($req->all());
         $jsonModel = ObjectNotation::where("key", "sync")->first();
         $item = json_decode($jsonModel->value);
         $item->first_sync = (int)$req->get("first_sync_input");
         $item->second_sync = (int)$req->get("second_sync_input");
         $jsonModel->value = json_encode($item);
         $jsonModel->save();
-        
+
         return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value), "msg" => "Настройки сохранены успешно!"]);
     }
 }
