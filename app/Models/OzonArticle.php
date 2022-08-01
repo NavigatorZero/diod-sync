@@ -64,7 +64,8 @@ class OzonArticle extends Model
         'article',
         'ozon_product_id',
         'is_synced',
-        'ozon_old_price'
+        'ozon_old_price',
+        'sima_stocks'
     ];
 
 

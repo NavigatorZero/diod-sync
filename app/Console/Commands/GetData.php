@@ -58,6 +58,7 @@ class GetData extends Command
                     $sima->getItems($this->output);
                 }
             }
+            $this->call('diod:stocks');
             $ozon->sendStocks($this->output);
         }
 
@@ -65,8 +66,12 @@ class GetData extends Command
         $this->call('diod:calc');
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');
-        $rememberTimeInSeconds = 360000;
-        Cache::put('last_sync', Carbon::now()->format('Y-m-d h:i:s'), $rememberTimeInSeconds);
+        $jsonModel = ObjectNotation::where("key", "sync")->first();
+        $json = json_decode($jsonModel->value);
+        $json->is_sync_in_progress = false;
+        $json->last_sync = Carbon::now()->format('Y-m-d h:i:s');
+        $jsonModel->value = json_encode($json);
+        $jsonModel->save();
         $this->output->write('Sync finished..');
         $this->output->write('sync elapsed time: ' . round((microtime(true) - $start) / 60, 4) . " min");
 

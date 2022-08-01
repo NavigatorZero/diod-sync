@@ -2,6 +2,13 @@
 
 @section('content')
     <div class="container">
+        @if (isset($msg) || isset($file_msg))
+            <div class="alert alert-success" role="alert">
+                    {{ $msg ?? $file_msg}}
+                </div>
+            </div>
+        @endif
+
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
@@ -19,14 +26,6 @@
                                     <form action="{{route('api.post-commission')}}" method="post"
                                           enctype="multipart/form-data">
                                         @csrf
-                                        @php
-                                            $time = Cache::get("last_sync", "Синхронизация была прервана");
-                                        @endphp
-                                        @if ($message = Session::get('success'))
-                                            <div class="alert alert-success">
-                                                <strong>{{ $message }}</strong>
-                                            </div>
-                                        @endif
                                         @if (count($errors) > 0)
                                             <div class="alert alert-danger">
                                                 <ul>
@@ -44,16 +43,34 @@
                                                 </button>
                                                 <input type="file" name="excel_commission" class="custom-file-input m-1"
                                                        id="chooseFile">
-                                                @if (isset($file_msg))
-                                                    <div class="alert alert-success">
-                                                        <strong>{{ $file_msg }}</strong>
-                                                    </div>
-                                                @endif
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <form action="{{route('api.post-stocks')}}" method="post" class="pt-3"
+                                          enctype="multipart/form-data">
+                                        @csrf
+                                        @if (count($errors) > 0)
+                                            <div class="alert alert-danger">
+                                                <ul>
+                                                    @foreach ($errors->all() as $error)
+                                                        <li>{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+                                        <div class="custom-file">
+                                            <div class="d-flex">
+                                                <button type="submit" name="submit" id="submit"
+                                                        class="btn btn-primary btn-block">
+                                                    Загрузить остатки
+                                                </button>
+                                                <input type="file" name="excel_stocks" class="custom-file-input m-1"
+                                                       id="chooseFile_1">
                                             </div>
                                         </div>
                                     </form>
                                     <div class="mt-3">
-                                        Последняя синхронизация завершилась в : {{$time}}
+                                        Последняя синхронизация завершилась в : {{$json->last_sync ?? ''}}
                                     </div>
                                     <div class="row justify-content-around mt-3">
                                         <div class="col-6">
@@ -121,11 +138,6 @@
                                                     class="btn btn-success">Cохранить настройки
                                             </button>
                                         </div>
-                                        @if (isset($msg))
-                                            <div class="alert alert-success">
-                                                <strong>{{ $msg }}</strong>
-                                            </div>
-                                        @endif
                                     </form>
                                 </div>
                             </div>

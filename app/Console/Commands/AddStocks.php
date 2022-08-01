@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 
-class SyncCommision extends Command
+class AddStocks extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'diod:commission';
+    protected $signature = 'diod:stocks';
 
     /**
      * The console command description.
@@ -36,48 +36,34 @@ class SyncCommision extends Command
      */
     public function handle()
     {
-        $this->output->write('Sync commission started..');
+        $this->output->write('sync stocks started..');
         DB::connection()->disableQueryLog();
         DB::connection()->unsetEventDispatcher();
-        $start = microtime(true);
-        $reader = ReaderEntityFactory::createReaderFromFile(Storage::path('public/1.xlsx'));
-
-        $reader->open(Storage::path('public/1.xlsx'));
-
-        foreach ($reader->getSheetIterator() as $key => $sheet) {
-
-            if ($key === 2) {
+        if(Storage::exists('public/stocks.xlsx')) {
+            $reader = ReaderEntityFactory::createReaderFromFile(Storage::path('public/stocks.xlsx'));
+            $reader->open(Storage::path('public/stocks.xlsx'));
+            foreach ($reader->getSheetIterator() as $key => $sheet) {
                 /** @var Row $item */
                 foreach ($sheet->getRowIterator() as $item) {
-                    // do stuff with the row
                     $article = $item->getCellAtIndex(0)->getValue();
-                    $comission = $item->getCellAtIndex(6)->getValue();
+                    $stocks = $item->getCellAtIndex(1)->getValue();
 
                     if (!is_null(($article) && !is_null(substr($article, 2)))) {
                         $item = OzonArticle::where('article', '=', (int)substr(substr($article, 2), 0, -2))
                             ->first();
 
                         if ($item) {
-                            if (!$item->price()->first()) {
-                                $price = new Price(['commision' => (int)$comission]);
-                                $price->save();
-                                $item->price()->associate($price)->save();
-                            } else {
-                                $price = $item->price()->first();
-                                $price->commision = (int)$comission;
-                                $price->save();
-                            }
+                            $item->sima_stocks += (int)$stocks;
+                            $item->save();
                         }
                     }
                 }
             }
+
+            $reader->close();
+            $this->output->write('sync stocks finished');
+
         }
-
-        $reader->close();
-        $this->output->write('Sync commission finished..');
-        $this->output->write('sync elapsed time: ' . round((microtime(true) - $start) / 60, 4) . " min");
-
-
         return 0;
     }
 }

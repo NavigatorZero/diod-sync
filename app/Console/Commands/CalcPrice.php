@@ -39,14 +39,8 @@ class CalcPrice extends Command
 
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');
-        $rememberTimeInSeconds = 360000;
-        $this->output->write('Sync finished..');
-        $this->output->write('sync elapsed time: ' . round((microtime(true) - $start) / 60, 4) . " min");
-        $jsonModel = ObjectNotation::where("key", "sync")->first();
-        $json = json_decode($jsonModel->value);
-        $json->is_sync_in_progress = false;
-        $jsonModel->value = json_encode($json);
-        $jsonModel->save();
+        $this->output->write('Calc finished..');
+        $this->output->write('Calc elapsed time: ' . round((microtime(true) - $start) / 60, 4) . " min");
         return 0;
     }
 }

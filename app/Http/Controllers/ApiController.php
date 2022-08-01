@@ -67,6 +67,15 @@ class ApiController extends Controller
         return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value), "file_msg" => "Файл загружен успешно!"]);
     }
 
+    public function stocks(Request $req): Application|Factory|View
+    {
+        if ($file = $req->file('excel_stocks')) {
+            $file->storeAs('public/', "stocks.xlsx");
+        }
+
+        return view('home', ["json" => json_decode(ObjectNotation::where("key", "sync")->first()->value), "file_msg" => "Файл загружен успешно!"]);
+    }
+
     public function calcPrice(): BinaryFileResponse
     {
         return Excel::download(new CalcExport(), 'prices.xlsx');
