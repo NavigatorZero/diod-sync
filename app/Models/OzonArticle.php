@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $sima_order_minimum
  * @property float|null $sima_price
  * @property float|null $ozon_old_price
+ * @property int $raketa_stocks
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Price|null $price
@@ -65,7 +66,8 @@ class OzonArticle extends Model
         'ozon_product_id',
         'is_synced',
         'ozon_old_price',
-        'sima_stocks'
+        'sima_stocks',
+        'raketa_stocks'
     ];
 
 

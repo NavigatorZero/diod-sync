@@ -53,7 +53,7 @@ class AddStocks extends Command
                             ->first();
 
                         if ($item) {
-                            $item->sima_stocks += (int)$stocks;
+                            $item->raketa_stocks += (int)$stocks;
                             $item->save();
                         }
                     }

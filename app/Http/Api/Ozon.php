@@ -111,7 +111,6 @@ class Ozon
         }
     }
 
-
     function sendStocks(OutputStyle $outputStyle)
     {
         $outputStyle->writeln("Sending stocks...");
@@ -136,6 +135,9 @@ class Ozon
                     if ($item->sima_stocks > 15) {
                         $stocks = 10;
                     }
+
+                    $stocks += $item->raketa_stocks;
+
                     $res[] = [
                         "offer_id" => '66' . $item->article . '02',
                         "product_id" => $item->ozon_product_id,
