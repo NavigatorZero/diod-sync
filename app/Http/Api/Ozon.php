@@ -14,9 +14,15 @@ class Ozon
 {
 
     private const API_URL = 'https://api-seller.ozon.ru';
+
     private const HEADERS = [
         'Client-Id' => '161605',
         'Api-Key' => '81d5f89e-c7a9-4046-aa24-d11944654ed7'
+    ];
+
+    private const HEADERS2 = [
+        'Client-Id' => '360163',
+        'Api-Key' => '8f23718b-adfc-44c3-9c6b-63670412fc52'
     ];
 
     private const CATEGORIES = [];
@@ -146,7 +152,7 @@ class Ozon
                     ];
                 });
                 try {
-                    $res = Http::withHeaders(
+                    $response = Http::withHeaders(
                         self::HEADERS
                     )
                         ->asJson()
@@ -154,6 +160,19 @@ class Ozon
                             [
                                 "stocks" => $res,
                             ]);
+
+                    $response2 = Http::withHeaders(
+                        self::HEADERS2
+                    )
+                        ->asJson()
+                        ->post(self::API_URL . '/v2/products/stocks',
+                            [
+                                "stocks" => $res,
+                            ]);
+
+                    if ($response->status() !== 200 || $response2->status() !== 200) {
+                        $outputStyle->writeln('sending stocks error: ' . $response->body(), $response2->body());
+                    }
 
                 } catch (\Exception $exception) {
                     $outputStyle->write($exception->getMessage());
