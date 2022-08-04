@@ -329,81 +329,111 @@ class Ozon
                 $wholeasale = $ozonArticle->sima_wholesale_price;
                 $multiplicator = null;
 
-                if ($wholeasale < 5) {
-                    $multiplicator = 7000;
-                } else if ($wholeasale >= 5 and $wholeasale < 10) {
-                    $multiplicator = 5000;
+                if ($wholeasale < 10) {
+                    $multiplicator = 2700;
                 } else if ($wholeasale >= 10 and $wholeasale < 20) {
-                    $multiplicator = 2500;
+                    $multiplicator = 980;
                 } else if ($wholeasale >= 20 and $wholeasale < 30) {
-                    $multiplicator = 1500;
+                    $multiplicator = 630;
                 } else if ($wholeasale >= 30 and $wholeasale < 40) {
-                    $multiplicator = 1000;
+                    $multiplicator = 445;
                 } else if ($wholeasale >= 40 and $wholeasale < 50) {
-                    $multiplicator = 750;
+                    $multiplicator = 355;
                 } else if ($wholeasale >= 50 and $wholeasale < 75) {
-                    $multiplicator = 600;
+                    $multiplicator = 265;
                 } else if ($wholeasale >= 75 and $wholeasale < 100) {
-                    $multiplicator = 500;
+                    $multiplicator = 195;
                 } else if ($wholeasale >= 100 and $wholeasale < 150) {
-                    $multiplicator = 250;
+                    $multiplicator = 140;
                 } else if ($wholeasale >= 150 and $wholeasale < 200) {
-                    $multiplicator = 200;
+                    $multiplicator = 105;
                 } else if ($wholeasale >= 200 and $wholeasale < 250) {
-                    $multiplicator = 175;
+                    $multiplicator = 85;
                 } else if ($wholeasale >= 250 and $wholeasale < 300) {
-                    $multiplicator = 150;
-                } else if ($wholeasale >= 300 and $wholeasale < 400) {
-                    $multiplicator = 100;
-                } else if ($wholeasale >= 400 and $wholeasale < 500) {
-                    $multiplicator = 80;
-                } else if ($wholeasale >= 500 and $wholeasale < 750) {
-                    $multiplicator = 75;
-                } else if ($wholeasale >= 750 and $wholeasale < 1000) {
                     $multiplicator = 70;
-                } else if ($wholeasale >= 1000 and $wholeasale < 1500) {
+                } else if ($wholeasale >= 300 and $wholeasale < 400) {
                     $multiplicator = 60;
-                } else if ($wholeasale >= 1500 and $wholeasale < 2000) {
+                } else if ($wholeasale >= 400 and $wholeasale < 500) {
                     $multiplicator = 50;
-                } else if ($wholeasale >= 2000 and $wholeasale < 2500) {
+                } else if ($wholeasale >= 500 and $wholeasale < 750) {
                     $multiplicator = 40;
-                } else if ($wholeasale >= 2500 and $wholeasale < 3000) {
-                    $multiplicator = 40;
-                } else if ($wholeasale >= 3000 and $wholeasale < 4000) {
+                } else if ($wholeasale >= 750 and $wholeasale < 1000) {
                     $multiplicator = 35;
-                } else if ($wholeasale >= 4000 and $wholeasale < 5000) {
-                    $multiplicator = 35;
-                } else if ($wholeasale >= 5000 and $wholeasale < 6000) {
-                    $multiplicator = 35;
-                } else if ($wholeasale >= 6000 and $wholeasale < 7500) {
-                    $multiplicator = 30;
-                } else if ($wholeasale >= 7500 and $wholeasale < 10000) {
-                    $multiplicator = 30;
-                } else if ($wholeasale >= 10000 and $wholeasale < 12500) {
-                    $multiplicator = 30;
-                } else if ($wholeasale >= 12500 and $wholeasale < 15000) {
-                    $multiplicator = 30;
-                } else if ($wholeasale >= 15000 and $wholeasale < 20000) {
-                    $multiplicator = 30;
-                } else if ($wholeasale >= 20000 and $wholeasale < 25000) {
+//                } else if ($wholeasale >= 1000 and $wholeasale < 1500) {
+//                    $multiplicator = 31;
+                } else if ($wholeasale >= 1000 and $wholeasale < 2000) {
+                    $multiplicator = 31;
+//                } else if ($wholeasale >= 2000 and $wholeasale < 2500) {
+//                    $multiplicator = 40;
+                } else if ($wholeasale >= 2000 and $wholeasale < 3000) {
                     $multiplicator = 27;
+//                } else if ($wholeasale >= 3000 and $wholeasale < 4000) {
+//                    $multiplicator = 35;
+//                } else if ($wholeasale >= 4000 and $wholeasale < 5000) {
+//                    $multiplicator = 35;
+//                } else if ($wholeasale >= 5000 and $wholeasale < 6000) {
+//                    $multiplicator = 35;
+                } else if ($wholeasale >= 3000 and $wholeasale < 7500) {
+                    $multiplicator = 25;
+//                } else if ($wholeasale >= 7500 and $wholeasale < 10000) {
+//                    $multiplicator = 30;
+                } else if ($wholeasale >= 7500 and $wholeasale < 12500) {
+                    $multiplicator = 22;
+//                } else if ($wholeasale >= 12500 and $wholeasale < 15000) {
+//                    $multiplicator = 30;
+                } else if ($wholeasale >= 15000 and $wholeasale < 20000) {
+                    $multiplicator = 20;
+                } else if ($wholeasale >= 20000 and $wholeasale < 25000) {
+                    $multiplicator = 18;
                 } else if ($wholeasale >= 25000 and $wholeasale < 30000) {
-                    $multiplicator = 25;
-                } else if ($wholeasale >= 30000) {
-                    $multiplicator = 25;
+                    $multiplicator = 16;
+                } else if ($wholeasale >= 30000 and $wholeasale < 40000) {
+                    $multiplicator = 15;
+                } else if ($wholeasale >= 40000) {
+                    $multiplicator = 13;
                 }
+
                 $income = $wholeasale + $wholeasale / 100 * $multiplicator;
-                $incomeFull = $income + 0.93 * $ozonArticle->product_volume + 70;
+                $lastMile = $this->calcLastMile($income);
+                $highway = $this->getOzonHighway($ozonArticle, $income);
+
+                $fbs = $income * ($ozonArticle->price->commision ?? 9 / 100) + 25 + $lastMile + $highway;
+                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 45;
+
+                if ($income < $minPrice) {
+                    $income = $minPrice + 100;
+                }
+
+                if ($income < 500) {
+                    $multiplicator = 8;
+                } else if ($wholeasale >= 500 and $wholeasale < 1000) {
+                    $multiplicator = 7;
+                } else if ($wholeasale >= 1000 and $wholeasale < 2000) {
+                    $multiplicator = 6;
+                } else if ($wholeasale >= 2000 and $wholeasale < 3000) {
+                    $multiplicator = 5;
+                } else if ($wholeasale >= 3000 and $wholeasale < 4000) {
+                    $multiplicator = 4;
+                } else if ($wholeasale >= 4000) {
+                    $multiplicator = 3;
+                }
+
+
+
+
+                $incomeFull = $income + $income * $multiplicator / 100;
+
+                $priceBefore = $incomeFull + $incomeFull * 1.15;
                 $lastMile = $this->calcLastMile($incomeFull);
                 $highway = $this->getOzonHighway($ozonArticle, $incomeFull);
-                $priceBefore = $incomeFull + $incomeFull * 1.15;
-                $fbs = $incomeFull * (($ozonArticle->price->commision ?? 9) / 100) + 25 + $lastMile + $highway;
-
-                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 0.93 * $ozonArticle->product_volume + 70 + (40 + $highway);
-
-                if ($incomeFull / 2 > $minPrice) {
-                    $minPrice = $incomeFull / 2 + 10;
-                }
+                $fbs = $incomeFull * ($ozonArticle->price->commision ?? 9 / 100) + 25 + $lastMile + $highway;
+//                $fbs = $incomeFull * (($ozonArticle->price->commision ?? 9) / 100) + 25 + $lastMile + $highway;
+//
+//                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 0.93 * $ozonArticle->product_volume + 70 + (40 + $highway);
+//
+//                if ($incomeFull / 2 > $minPrice) {
+//                    $minPrice = $incomeFull / 2 + 10;
+//                }
 
                 $ozonArticle->price()->update([
                     'price_after' => !is_null($priceBefore) ? round($priceBefore, 2) : 0,
