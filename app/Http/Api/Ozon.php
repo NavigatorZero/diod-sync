@@ -391,12 +391,14 @@ class Ozon
                     $multiplicator = 13;
                 }
 
-                $income = $wholeasale + $wholeasale / 100 * $multiplicator;
+                $income = $wholeasale + $wholeasale / 100 * $multiplicator + 45;
+
                 $lastMile = $this->calcLastMile($income);
                 $highway = $this->getOzonHighway($ozonArticle, $income);
 
-                $fbs = $income * ($ozonArticle->price->commision ?? 9 / 100) + 25 + $lastMile + $highway;
-                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 45;
+                $fbs = $income / 100 * ($ozonArticle->price?->commision ?? 9)  + 25 + $lastMile + $highway;
+
+                $minPrice = $fbs + $ozonArticle->sima_wholesale_price;
 
                 if ($income < $minPrice) {
                     $income = $minPrice + 100;
@@ -404,27 +406,26 @@ class Ozon
 
                 if ($income < 500) {
                     $multiplicator = 8;
-                } else if ($wholeasale >= 500 and $wholeasale < 1000) {
+                } else if ($income >= 500 and $income < 1000) {
                     $multiplicator = 7;
-                } else if ($wholeasale >= 1000 and $wholeasale < 2000) {
+                } else if ($income >= 1000 and $income < 2000) {
                     $multiplicator = 6;
-                } else if ($wholeasale >= 2000 and $wholeasale < 3000) {
+                } else if ($income >= 2000 and $income < 3000) {
                     $multiplicator = 5;
-                } else if ($wholeasale >= 3000 and $wholeasale < 4000) {
+                } else if ($income >= 3000 and $income < 4000) {
                     $multiplicator = 4;
-                } else if ($wholeasale >= 4000) {
+                } else if ($income >= 4000) {
                     $multiplicator = 3;
                 }
 
-
-
-
                 $incomeFull = $income + $income * $multiplicator / 100;
 
-                $priceBefore = $incomeFull + $incomeFull * 1.15;
+                $priceBefore = $incomeFull + $incomeFull * 115 / 100;
+
                 $lastMile = $this->calcLastMile($incomeFull);
                 $highway = $this->getOzonHighway($ozonArticle, $incomeFull);
-                $fbs = $incomeFull * ($ozonArticle->price->commision ?? 9 / 100) + 25 + $lastMile + $highway;
+                $fbs = $incomeFull / 100 * ($ozonArticle->price?->commision ?? 9) + 25 + $lastMile + $highway;
+                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 45;
 //                $fbs = $incomeFull * (($ozonArticle->price->commision ?? 9) / 100) + 25 + $lastMile + $highway;
 //
 //                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 0.93 * $ozonArticle->product_volume + 70 + (40 + $highway);
