@@ -171,7 +171,9 @@ class Ozon
                             ]);
 
                     if ($response->status() !== 200 || $response2->status() !== 200) {
-                        $outputStyle->writeln('sending stocks error: ' . $response->body(), $response2->body());
+                        $outputStyle->write('sending stocks error: ' . $response->status(), $response2->status()
+
+                        );
                     }
 
                 } catch (\Exception $exception) {
