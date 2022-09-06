@@ -19,7 +19,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
-        $schedule->command('diod:sync false')
+        $schedule->command('diod:sync')
             ->timezone('Asia/Yekaterinburg')->hourlyAt("00")->when(function () {
                 return Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->first_sync
                     || Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->second_sync;

@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.0.2",
         "ext-curl": "*",
+        "bensampo/laravel-enum": "^5.3",
         "box/spout": "^3.3",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^9.11",
@@ -15,6 +16,7 @@
         "laravel/ui": "^3.4",
         "maatwebsite/excel": "^3.1",
         "microsoft/microsoft-graph": "^1.73",
+        "parsecsv/php-parsecsv": "^1.3",
         "phpoffice/phpspreadsheet": "^1.23",
         "rap2hpoutre/fast-excel": "^3.2",
         "spresnac/laravel-create-user-cli": "^1.0"
@@ -25,7 +27,7 @@
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^6.1",
-        "phpunit/phpunit": "^9.5.10",
+        "phpunit/phpunit": "^9",
         "spatie/laravel-ignition": "^1.0"
     },
     "autoload": {
@@ -33,7 +35,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "classmap": [
+            "app/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

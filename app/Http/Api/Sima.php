@@ -28,6 +28,7 @@ class Sima
             ->chunk(100, function (Collection $chunk) use ($output) {
                 try {
                     $barcodesStr = '';
+
                     /** @var OzonArticle $item */
                     foreach ($chunk as $item) {
                         $barcodesStr .= $item->article . ',';
@@ -44,7 +45,7 @@ class Sima
                             [
                                 'per-page' => 100,
                                 'sid' => substr_replace($barcodesStr, "", -1),
-                                'expand' => 'stocks'
+                                'expand' => 'stocks,min_qty'
                             ]);
 
                     if (!$response instanceof ConnectException) {
@@ -65,17 +66,18 @@ class Sima
                                     'sima_order_minimum' => (int)$item['minimum_order_quantity'],
                                     'sima_id' => (int)$item['id'],
                                     'sima_stocks' => (int)$itemsOverall,
-                                    'is_synced' => true
+                                    'is_synced' => true,
+                                    'per_package' => (int)$item['min_qty']
                                 ]);
                         }
                         DB::commit();
                     } else {
-                        $output->writeln("connection timeout");
+                        $output->write("connection timeout");
                     }
 
                     $output->progressAdvance(100);
                 } catch (Exception $exception) {
-                    dump($exception->getMessage());
+                    $output->write("Erorr: ". $exception->getMessage());
                 }
             });
         $output->progressFinish();
@@ -121,7 +123,41 @@ class Sima
             });
     }
 
+    public static function getOneItemInfo(OzonArticle $article)
+    {
 
+        $response = Http::connectTimeout(30)
+            ->retry(5, 10000, function ($exception, $request) {
+                return $exception instanceof Exception;
+            })
+            ->withHeaders([
+                "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+            ])
+            ->get("https://www.sima-land.ru/api/v3/item/$article->sima_id",
+                [
+                    'expand' => 'weight,product_volume'
+                ]);
+
+        return $response->json();
+    }
+
+
+    public static function auth()
+    {
+        $response = Http::asJson()->post('https://www.sima-land.ru/api/v3/login-form/',
+        [
+            "entity" => 'diod.ekb@mail.ru',
+            "password"=>'qaska1990'
+        ]);
+
+        $id = $response->json()['id'];
+
+        $test = Http::withBasicAuth(urlencode('diod.ekb@mail.ru'), 'qaska1990')
+            ->acceptJson()
+            ->get("https://www.sima-land.ru/api/v3/auth/$id/");
+
+        var_dump($test->json(), urlencode('diod.ekb@mail.ru:qaska1990'));
+    }
 //    function downloadReport()
 //    {
 //        $result = Http::withHeaders(

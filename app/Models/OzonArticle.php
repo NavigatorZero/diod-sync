@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 /**
@@ -17,15 +18,19 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $product_weight,
  * @property int $sima_id,
  * @property int $sima_stocks,
- * @property int $sima_wholesale_price,
+ * @property int|null $sima_wholesale_price,
  * @property int $id
  * @property boolean $is_synced
  * @property int|null $sima_order_minimum
  * @property float|null $sima_price
  * @property float|null $ozon_old_price
  * @property int $raketa_stocks
+ * @property int|null $per_package
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @property int|null $provider_whole_sale_price
+ *
  * @property-read \App\Models\Price|null $price
  * @method static Builder|OzonArticle newModelQuery()
  * @method static Builder|OzonArticle newQuery()
@@ -49,7 +54,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class OzonArticle extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -67,9 +72,18 @@ class OzonArticle extends Model
         'is_synced',
         'ozon_old_price',
         'sima_stocks',
-        'raketa_stocks'
+        'raketa_stocks',
+        'per_package'
     ];
 
+    public function getProviderWholeSalePriceAttribute(): ?int
+    {
+        if ($this->per_package && $this->per_package > 1) {
+            return $this->sima_wholesale_price * $this->per_package;
+        } else {
+            return $this->sima_wholesale_price;
+        }
+    }
 
     /**
      * Get the phone associated with the user.

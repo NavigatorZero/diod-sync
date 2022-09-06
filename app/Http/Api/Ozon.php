@@ -5,7 +5,7 @@ namespace App\Http\Api;
 
 use App\Models\OzonArticle;
 use Illuminate\Console\OutputStyle;
-use Illuminate\Support\Carbon;
+use App\Enum\AutoActionEnabledStatus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -29,7 +29,49 @@ class Ozon
 
     public string $reportKey = '';
 
-    function generateReport(OutputStyle $output)
+    public string $lastId = '';
+
+
+    function getArtcileList(OutputStyle $output, $visibility = "ARCHIVED")
+    {
+        $output->writeln("Getting Ozon items...");
+
+        $isLastRequest = false;
+        $limit = 1000;
+
+        $articleResponse = Http::withHeaders(
+            self::HEADERS
+        )
+            ->asJson()
+            ->post(self::API_URL . '/v2/product/list',
+                [
+                    "filter" => [
+                        "visibility" => $visibility
+                    ],
+                    "last_id" => $this->lastId,
+                    "limit" => $limit
+                ]);
+
+        if ($articleResponse->status() === 200) {
+            $items = $articleResponse->json()['result']['items'];
+            foreach ($items as $key => $value) {
+                if ($item = OzonArticle::where('ozon_product_id', $value['product_id'])->first()) {
+                    $item->delete();
+                }
+            }
+            $this->lastId = $articleResponse->json()['result']['last_id'];
+            if (count($items) !== $limit) {
+                $output->writeln("Getting Ozon items finished...");
+            } else {
+                $this->getArtcileList($output, $visibility);
+            }
+        } else {
+            $output->write($articleResponse->status());
+        }
+
+    }
+
+    function generateReport(OutputStyle $output, string $visibility = "ALL")
     {
         $output->writeln("Generating Ozon report...");
         $result = Http::withHeaders(
@@ -42,7 +84,7 @@ class Ozon
                     "offer_id" => [],
                     "search" => "",
                     "sku" => [],
-                    "visibility" => "ALL"
+                    "visibility" => $visibility
                 ]);
 
         $this->reportKey = $result->json()['result']['code'];
@@ -62,7 +104,7 @@ class Ozon
                     'code' => $this->reportKey
                 ]);
 
-        if($result->json()['result']['status'] === 'success') {
+        if ($result->json()['result']['status'] === 'success') {
 
             try {
                 $output->writeln("Ozon report parsing..");
@@ -80,13 +122,13 @@ class Ozon
 //            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
                 for ($i = 1; $i <= count($goods); $i++) {
-                    $vendorItem = explode(';', $goods[$i]);
+                    $vendorItem = str_getcsv($goods[$i], ";", '"','"');
                     $vendorCode = strlen($vendorItem[0]) === 10 ? (int)substr($vendorItem[0], 2, 6) : (int)substr($vendorItem[0], 2, 7);
                     if ($vendorCode !== 0) {
 
                         $volume = isset($vendorItem[15]) ? str_replace(['"', "'"], "", $vendorItem[15]) : 0;
                         $weight = isset($vendorItem[16]) ? str_replace(['"', "'"], "", $vendorItem[16]) : 0;
-                        $price = isset($vendorItem[16]) ? str_replace(['"', "'"], "", $vendorItem[22]) : 0;
+                        $price = isset($vendorItem[22]) ? str_replace(['"', "'"], "", $vendorItem[22]) : 0;
                         $productId = isset($vendorItem[1]) ? str_replace(['"', "'"], "", $vendorItem[1]) : 0;
 
                         $values = [
@@ -98,6 +140,13 @@ class Ozon
                         ];
 
                         if ($item = OzonArticle::whereArticle($vendorCode)->first()) {
+                            if (!isset($vendorItem[15]) || !isset($vendorItem[16])) {
+                                $simaArr = Sima::getOneItemInfo($item);
+                                if (!isset($vendorItem[15])) $values['product_volume'] = $simaArr['product_volume'];
+                                if (!isset($vendorItem[16])) $values['product_weight'] = $simaArr['weight'] / 1000;
+
+                            }
+
                             $item->update($values);
                         } else {
                             $item = new OzonArticle();
@@ -106,13 +155,19 @@ class Ozon
                         }
                     }
                 }
+
                 $output->writeln("Ozon report parsed successfully");
             } catch (\Exception $exception) {
                 var_dump($exception);
             }
         } else {
-            $output->writeln("Report with status ". $result->json()['result']['status']. " repeating..");
-            sleep(30);
+            $output->writeln("Report with status " . $result->json()['result']['status'] . " repeating..");
+
+            if ($result->json()['result']['status'] === 'failed') {
+                $this->generateReport($output);
+            }
+
+            sleep(60);
             $this->postReportInfo($output);
         }
     }
@@ -121,7 +176,7 @@ class Ozon
     {
         $outputStyle->writeln("Sending stocks...");
         DB::table("ozon_articles")// TODO add global scope
-            ->where('is_synced',true)
+        ->where('is_synced', true)
             ->orderBy('id')
             ->chunk(100, function (Collection $chunk) use ($outputStyle) {
 
@@ -130,19 +185,22 @@ class Ozon
                 $chunk->map(function ($item) use (&$res) {
                     $stocks = 0;
 
-                    if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
-                        $stocks = 2;
-                    }
+                    if($item->raketa_stocks > 0) {
+                        $stocks = $item->raketa_stocks;
+                    } else {
 
-                    if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
-                        $stocks = 5;
-                    }
+                        if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
+                            $stocks = 2;
+                        }
 
-                    if ($item->sima_stocks > 15) {
-                        $stocks = 10;
-                    }
+                        if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
+                            $stocks = 5;
+                        }
 
-                    $stocks += $item->raketa_stocks;
+                        if ($item->sima_stocks > 15) {
+                            $stocks = 10;
+                        }
+                    }
 
                     $res[] = [
                         "offer_id" => '66' . $item->article . '02',
@@ -316,6 +374,7 @@ class Ozon
         } elseif ($highway > $maxPrice) {
             return $maxPrice * 1.3;
         }
+
         return $highway * 1.3;
     }
 
@@ -326,7 +385,7 @@ class Ozon
             ->where('is_synced', true)
             ->get()
             ->map(function (OzonArticle $ozonArticle) {
-                $wholeasale = $ozonArticle->sima_wholesale_price;
+                $wholeasale = $ozonArticle->provider_whole_sale_price;
                 $multiplicator = null;
 
                 if ($wholeasale < 10) {
@@ -398,9 +457,8 @@ class Ozon
                 $lastMile = $this->calcLastMile($income);
                 $highway = $this->getOzonHighway($ozonArticle, $income);
 
-                $fbs = $income / 100 * ($ozonArticle->price?->commision ?? 9)  + 25 + $lastMile + $highway;
-
-                $minPrice = $fbs + $ozonArticle->sima_wholesale_price;
+                $fbs = $income / 100 * ($ozonArticle->price?->commision ?? 9) + 25 + $lastMile + $highway;
+                $minPrice = $fbs + $wholeasale + 45;
 
                 if ($income < $minPrice) {
                     $income = $minPrice + 100;
@@ -421,13 +479,12 @@ class Ozon
                 }
 
                 $incomeFull = $income + $income * $multiplicator / 100;
-
                 $priceBefore = $incomeFull + $incomeFull * 115 / 100;
 
                 $lastMile = $this->calcLastMile($incomeFull);
                 $highway = $this->getOzonHighway($ozonArticle, $incomeFull);
                 $fbs = $incomeFull / 100 * ($ozonArticle->price?->commision ?? 9) + 25 + $lastMile + $highway;
-                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 45;
+                $minPrice = $fbs + $wholeasale + 45;
 //                $fbs = $incomeFull * (($ozonArticle->price->commision ?? 9) / 100) + 25 + $lastMile + $highway;
 //
 //                $minPrice = $fbs + $ozonArticle->sima_wholesale_price + 0.93 * $ozonArticle->product_volume + 70 + (40 + $highway);
@@ -460,5 +517,49 @@ class Ozon
         }
 
         return 350;
+    }
+
+
+    public function sendPrices()
+    {
+
+        $test = [];
+        $prices = OzonArticle::whereIn('ozon_product_id',
+            [
+                221676608,
+                322706381
+//                895734,
+//                895732,
+//                1377352,
+//                6922382,
+//                7461778,
+//                2827193,
+//                5139481,
+//                5084434,
+//                5084433,
+//                5084436,
+            ])->with('price')
+            ->get()
+            ->map(function (OzonArticle $ozonArticle) use (&$test) {
+                $test[] = [
+                    'auto_action_enabled' => AutoActionEnabledStatus::ENABLED,
+                    'min_price' => (string)  $ozonArticle->price->min_price,
+                 //   'offer_id' => (string) 66 .$ozonArticle->article. 02,
+                    'old_price' => (string)  $ozonArticle->price->price_after,
+                    'price' => (string)  $ozonArticle->price->income,
+                    'product_id' => $ozonArticle->ozon_product_id
+                ];
+            })->toArray();
+
+
+        $response = Http::withHeaders(
+            self::HEADERS
+        )
+            ->asJson()
+            ->post(self::API_URL . '/v1/product/import/prices',
+                [
+                    "prices" => $test,
+                ]);
+
     }
 }

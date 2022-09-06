@@ -21,7 +21,8 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
             'Минимальная цена',
             'Цена до',
             'Магистраль',
-            'Цена на озон до синхронизации',
+            'Цена Опт',
+            'Кол-во штук',
             'Наценка'
         ];
     }
@@ -39,7 +40,8 @@ class CalcExport implements FromCollection, WithHeadings, WithMapping
             $row->min_price,
             $row->price_after,
             $row->highway,
-            $row->article->ozon_old_price,
+            $row->article->provider_whole_sale_price,
+            $row->article->per_package,
             $row->income
         ];
     }
