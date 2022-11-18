@@ -16,13 +16,13 @@ class Ozon
     private const API_URL = 'https://api-seller.ozon.ru';
 
     private const HEADERS = [
-        'Client-Id' => '161605',
-        'Api-Key' => '81d5f89e-c7a9-4046-aa24-d11944654ed7'
+        'Client-Id' => getenv('CLIENT_ID_1'),
+        'Api-Key' => getenv('CLIENT_API_KEY_1')
     ];
 
     private const HEADERS2 = [
-        'Client-Id' => '360163',
-        'Api-Key' => '8f23718b-adfc-44c3-9c6b-63670412fc52'
+        'Client-Id' => getenv('CLIENT_ID_2'),
+        'Api-Key' => getenv('CLIENT_API_KEY_2')
     ];
 
     private const CATEGORIES = [];
