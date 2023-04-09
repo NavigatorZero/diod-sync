@@ -47,6 +47,7 @@ class GetData extends Command
         $json->is_sync_in_progress = true;
         $jsonModel->value = json_encode($json);
         $jsonModel->save();
+        $ozon->generateReport($this->output);
 
         $sima->getItems($this->output);
         for ($i = 1; $i <= (int)(OzonArticle::count() / 5000); $i++) {
@@ -56,7 +57,6 @@ class GetData extends Command
             }
         }
         $this->call('diod:stocks');
-        $ozon->sendStocks($this->output);
 
         $this->call('diod:commission');
         $this->call('diod:calc');

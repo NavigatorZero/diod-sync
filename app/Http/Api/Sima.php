@@ -7,8 +7,10 @@ namespace App\Http\Api;
 use App\Models\OzonArticle;
 use Exception;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\TransferException;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -34,12 +36,14 @@ class Sima
                         $barcodesStr .= $item->article . ',';
                     }
 
+                    try {
                     $response = Http::connectTimeout(30)
-                        ->retry(5, 10000, function ($exception, $request) {
-                            return $exception instanceof Exception;
+                        ->retry(5, 10, function ($exception, $request) {
+                            return $exception instanceof RequestException;
                         })
                         ->withHeaders([
-                            "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                            //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                            "x-api-key" => getenv('SIMA_X_API_KEY')
                         ])
                         ->get('https://www.sima-land.ru/api/v3/item',
                             [
@@ -47,16 +51,17 @@ class Sima
                                 'sid' => substr_replace($barcodesStr, "", -1),
                                 'expand' => 'stocks,min_qty'
                             ]);
+                         } catch(RequestException $e) {
+                            $output->write($e->getMessage());
+                         }
 
                     if (!$response instanceof ConnectException) {
                         DB::beginTransaction();
                         foreach ($response->json()['items'] as $item) {
+                            $stocks = Collection::make($item['stocks']);
 
-                            $itemsOverall = 0;
-
-                            foreach ($item['stocks'] as $stock) {
-                                $itemsOverall += $stock['balance'];
-                            }
+                            $itemStocks = $stocks->where('stock_id',2)->first();
+                            $itemsOverall = !is_null($itemStocks) ? $itemStocks['balance'] : 0;
 
                             OzonArticle::query()
                                 ->where('article', $item['sid'])
@@ -97,7 +102,8 @@ class Sima
                 $chunk->map(function ($ozonArticle) use ($output) {
                     try {
                         $response = Http::acceptJson()->timeout(100000)->withHeaders([
-                            "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                            //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                            "x-api-key" => getenv('SIMA_X_API_KEY')
                         ])
                             ->get('https://www.sima-land.ru/api/v3/item/' . $ozonArticle->sima_id . '/',
                                 [
@@ -125,13 +131,13 @@ class Sima
 
     public static function getOneItemInfo(OzonArticle $article)
     {
-
         $response = Http::connectTimeout(30)
             ->retry(5, 10000, function ($exception, $request) {
                 return $exception instanceof Exception;
             })
             ->withHeaders([
-                "Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                "x-api-key" => getenv('SIMA_X_API_KEY')
             ])
             ->get("https://www.sima-land.ru/api/v3/item/$article->sima_id",
                 [
