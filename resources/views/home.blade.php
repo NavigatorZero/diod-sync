@@ -38,7 +38,7 @@
                                         <div class="custom-file">
                                             <div class="d-flex">
                                                 <button type="submit" name="submit" id="submit"
-                                                        class="btn btn-primary btn-block">
+                                                        class="btn btn-primary btn-block btn-main">
                                                     Загрузить коммиссию
                                                 </button>
                                                 <input type="file" name="excel_commission" class="custom-file-input m-1"
@@ -61,7 +61,7 @@
                                         <div class="custom-file">
                                             <div class="d-flex">
                                                 <button type="submit" name="submit" id="submit"
-                                                        class="btn btn-primary btn-block">
+                                                        class="btn btn-primary btn-block btn-supreme">
                                                     Загрузить остатки
                                                 </button>
                                                 <input type="file" name="excel_stocks" class="custom-file-input m-1"
@@ -118,19 +118,29 @@
                                             </output>
                                             :00
                                         </div>
+                                        <div class="d-flex flex-column pt-2">
+                                            <div class="d-flex">
+                                                <input type="checkbox"
+                                                       class="form-check"
+                                                       name="is_second_sync_input"
+                                                       {{ $json->is_second_sync === true ? 'checked': '' }}
+                                                       id="isSecondSync"
+                                                >
+                                                <span class="form-label ps-2">Дополнительная синхронизация</span>
+                                            </div>
+                                            <div class="d-flex">
+                                                <input type="range" id="rangeInput_2" name="second_sync_input"
+                                                       {{ $json->is_second_sync === true ? '': 'disabled' }}
+                                                       class="form-range" min="0" max="23"
+                                                       value="{{(int)$json->second_sync}}"
+                                                       oninput="second_sync.value=second_sync_input.value">
 
-                                        <label for="customRange2" class="form-label">Время второй синхронизации</label>
-
-                                        <div class="d-flex">
-                                            <input type="range" id="rangeInput" name="second_sync_input"
-                                                   class="form-range" min="0" max="23"
-                                                   value="{{(int)$json->second_sync}}"
-                                                   oninput="second_sync.value=second_sync_input.value">
-
-                                            <output id="amount" name="second_sync" class="ms-3"
-                                                    for="rangeInput">{{(int)$json->second_sync}}
-                                            </output>
-                                            :00
+                                                <output id="range_2"
+                                                         name="second_sync" class="ms-3"
+                                                        for="rangeInput">{{(int)$json->second_sync}}
+                                                </output>
+                                                :00
+                                            </div>
                                         </div>
 
                                         <div class="text-center p-4">
@@ -147,4 +157,19 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $( document ).ready(function() {
+            const checkbox = $('#isSecondSync').first();
+            const output = $('#rangeInput_2').first();
+            checkbox.click(()=> {
+                console.log('here', output);
+                    output.prop("disabled", !checkbox.is(':checked'));
+
+            })
+
+        });
+    </script>
 @endsection

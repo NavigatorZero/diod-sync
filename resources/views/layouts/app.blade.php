@@ -9,8 +9,15 @@
 
     <title>{{ config('app.name', 'Diod Sync') }}</title>
 
+    <!-- JQ -->
+    <script
+        src="https://code.jquery.com/jquery-3.6.4.slim.min.js"
+        integrity="sha256-a2yjHM4jnF9f54xUQakjZGaqYs/V1CYvWpoqZzC2/Bw="
+        crossorigin="anonymous"></script>
+    <script src="{{asset('js/main.js')}}" type="text/javascript"></script>
+
     <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{asset('js/app.js') }}"></script>
     <script src="{{asset('js/core.js')}}"></script>
 
     <!-- Fonts -->
@@ -78,6 +85,7 @@
 
         <main class="py-4">
             @yield('content')
+            @yield('scripts')
         </main>
     </div>
 </body>

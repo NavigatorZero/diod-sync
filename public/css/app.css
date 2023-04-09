@@ -10252,3 +10252,8 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+
+.btn-supreme {
+    max-width: 300px;
+    max-height: 60px;
+}

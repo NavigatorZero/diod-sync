@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Classes\ObjectNotations\Sync;
 use App\Excel\Export\CalcExport;
 use App\Excel\Export\StocksExport;
 use App\Http\Api\Ozon;
@@ -89,9 +90,10 @@ class ApiController extends Controller
     public function changeSyncSettings(Request $req): Factory|View|Application
     {
         $jsonModel = ObjectNotation::where("key", "sync")->first();
-        $item = json_decode($jsonModel->value);
+        $item = new Sync((array)json_decode($jsonModel->value));
         $item->first_sync = (int)$req->get("first_sync_input");
-        $item->second_sync = (int)$req->get("second_sync_input");
+        $item->is_second_sync = $req->has("is_second_sync_input");
+        $item->second_sync = (int)$req->get("second_sync_input") ?? null;
         $jsonModel->value = json_encode($item);
         $jsonModel->save();
 

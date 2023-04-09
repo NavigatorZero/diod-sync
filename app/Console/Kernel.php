@@ -21,8 +21,17 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('diod:sync')
             ->timezone('Asia/Yekaterinburg')->hourlyAt("00")->when(function () {
-                return Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->first_sync
-                    || Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour === (int)json_decode(ObjectNotation::where("key", "sync")->first()->value)->second_sync;
+                $settings = json_decode(ObjectNotation::where("key", "sync")->first()->value);
+                $hour = Carbon::now()->setTimezone("Asia/Yekaterinburg")->hour;
+                if ($hour === $settings->first_sync) {
+                    return true;
+                }
+
+                if ($settings->is_second_sync === true && $hour === $settings->second_sync) {
+                    return true;
+                }
+
+                return false;
             })
             ->sendOutputTo(\Storage::path('../logs/sync.log'))
             ->onSuccess(function (Stringable $output) {
