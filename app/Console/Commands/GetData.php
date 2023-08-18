@@ -4,11 +4,13 @@ namespace App\Console\Commands;
 
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
+use App\Http\Api\Wildberries;
 use App\Models\ObjectNotation;
 use App\Models\OzonArticle;
 use App\Models\SimaArticle;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -39,7 +41,10 @@ class GetData extends Command
         $start = microtime(true);
         $ozon = new Ozon();
         $sima = new Sima();
-        $this->call('diod:remove-archived');
+
+        /** @var Wildberries $wildbberies */
+        $wildbberies = App::make(Wildberries::class);
+        //   $this->call('diod:remove-archived');
 
         DB::table('ozon_articles')->update(['is_synced' => false, 'raketa_stocks' => 0]);
         $jsonModel = ObjectNotation::where("key", "sync")->first();
@@ -50,16 +55,23 @@ class GetData extends Command
         $ozon->generateReport($this->output);
 
         $sima->getItems($this->output);
-        for ($i = 1; $i <= (int)(OzonArticle::count() / 5000); $i++) {
-            if (OzonArticle::where('is_synced', false)->count() > 100) {
-                $this->output->writeln("getting Sima goods again to get missing items..");
-                $sima->getItems($this->output);
-            }
-        }
-        $this->call('diod:stocks');
 
-        $this->call('diod:commission');
-        $this->call('diod:calc');
+        for ($i = 1; $i <= (int)(OzonArticle::count() / 5000); $i++) {
+            $this->output->writeln("Getting Sima goods again to get missing items..");
+            $sima->getItems($this->output);
+        }
+
+        if ($json->is_ozon_sync === true) {
+            $this->call('diod:stocks');
+        }
+
+        if ($json->is_wildberries_sync === true) {
+            $wildbberies->getArticleList();
+            $wildbberies->sendStocks($this->output);
+        }
+
+        //  $this->call('diod:commission');
+        //  $this->call('diod:calc');
         setlocale(LC_TIME, 'ru_RU.UTF-8');
         date_default_timezone_set('Asia/Yekaterinburg');
         $jsonModel = ObjectNotation::where("key", "sync")->first();

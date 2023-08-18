@@ -26,25 +26,25 @@ class StocksExport implements FromCollection, WithHeadings, WithMapping
      */
     public function map($ozonArticle): array
     {
-        $stocks = 0;
-
-        if ($ozonArticle->sima_stocks >= 3 && $ozonArticle->sima_stocks <= 9) {
-            $stocks = 2;
-        }
-
-        if ($ozonArticle->sima_stocks >= 10 && $ozonArticle->sima_stocks <= 15) {
-            $stocks = 5;
-        }
-
-        if ($ozonArticle->sima_stocks > 15) {
-            $stocks = 10;
-        }
+//        $stocks = 0;
+//
+//        if ($ozonArticle->sima_stocks >= 3 && $ozonArticle->sima_stocks <= 9) {
+//            $stocks = 2;
+//        }
+//
+//        if ($ozonArticle->sima_stocks >= 10 && $ozonArticle->sima_stocks <= 15) {
+//            $stocks = 5;
+//        }
+//
+//        if ($ozonArticle->sima_stocks > 15) {
+//            $stocks = 10;
+//        }
 
         return [
             'Курьер (21858285092000)',
             '66' . $ozonArticle->article . '02',
             '',
-            $stocks === 0 ? '0' : $stocks,
+            $ozonArticle->sima_stocks  === 0 ? '0' : $ozonArticle->sima_stocks,
             'Заполнены'
         ];
     }

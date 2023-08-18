@@ -32,6 +32,13 @@ class Ozon
     public string $lastId = '';
 
 
+    /** @var int|\Closure самовывоз */
+    private int $pickup = 23890889223000;
+
+    /** @var int|\Closure курьер */
+    private int $courier = 23890904458000;
+
+
     function getArtcileList(OutputStyle $output, $visibility = "ARCHIVED")
     {
         $output->writeln("Getting Ozon items...");
@@ -53,11 +60,11 @@ class Ozon
 
         if ($articleResponse->status() === 200) {
             $items = $articleResponse->json()['result']['items'];
-            foreach ($items as $key => $value) {
-                if ($item = OzonArticle::where('ozon_product_id', $value['product_id'])->first()) {
-                    $item->delete();
-                }
-            }
+//            foreach ($items as $key => $value) {
+//                if ($item = OzonArticle::where('ozon_product_id', $value['product_id'])->first()) {
+//                    $item->delete();
+//                }
+//            }
             $this->lastId = $articleResponse->json()['result']['last_id'];
             if (count($items) !== $limit) {
                 $output->writeln("Getting Ozon items finished...");
@@ -165,7 +172,7 @@ class Ozon
                 $this->generateReport($output);
             }
 
-            sleep(180);
+            sleep(300);
             $this->postReportInfo($output);
         }
     }
@@ -181,30 +188,31 @@ class Ozon
                 $res = [];
 
                 $chunk->map(function (\stdClass $item) use (&$res) {
-                    $stocks = 0;
+                   // $stocks = 0;
 
                     if($item->raketa_stocks > 0) {
                         $stocks = $item->raketa_stocks;
                     } else {
+                        $stocks = $item->sima_stocks;
 
-                        if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
-                            $stocks = 2;
-                        }
-
-                        if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
-                            $stocks = 5;
-                        }
-
-                        if ($item->sima_stocks > 15) {
-                            $stocks = 10;
-                        }
+//                        if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
+//                            $stocks = 2;
+//                        }
+//
+//                        if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
+//                            $stocks = 5;
+//                        }
+//
+//                        if ($item->sima_stocks > 15) {
+//                            $stocks = 10;
+//                        }
                     }
 
                     $res[] = [
                         "offer_id" => '66' . $item->article . '02',
                         "product_id" => $item->ozon_product_id,
                         "stock" => $stocks === 0 ? '0' : $stocks,
-                        "warehouse_id" => 23890904458000
+                        "warehouse_id" => $this->pickup
                     ];
                 });
                 try {

@@ -212,4 +212,6 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    'bot' => '6441416980:AAGzAbiG60DZJamyG9a6Ar1GFEeFeyk-5dA',
+
 ];

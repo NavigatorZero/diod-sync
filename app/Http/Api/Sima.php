@@ -6,11 +6,10 @@ namespace App\Http\Api;
 
 use App\Models\OzonArticle;
 use Exception;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\TransferException;
 use Illuminate\Console\OutputStyle;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\RequestException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -18,69 +17,47 @@ use Illuminate\Support\Facades\Http;
 class Sima
 {
 
-    function getItems(OutputStyle $output): void
+    public static function getItems(OutputStyle $output, Collection $ids = null): void
     {
-
         $output->writeln("getting Sima goods..");
         $output->progressStart(OzonArticle::query()->where("is_synced", false)->count());
 
-        DB::table("ozon_articles")
+        OzonArticle::query()
             ->orderBy('id')
             ->where("is_synced", false)
-            ->chunk(100, function (Collection $chunk) use ($output) {
-                try {
+            ->when(!is_null($ids), function (Builder $builder) use ($ids) {
+                return $builder->whereIn('article', $ids);
+            })
+            ->chunk(1000, function (Collection $chunk) use ($output) {
+
+                $barcodes = [];
+
+                for ($i = 1; $i <= 11; $i++) {
                     $barcodesStr = '';
-
-                    /** @var OzonArticle $item */
-                    foreach ($chunk as $item) {
+                    $chunk->forPage($i,100)->each(function (OzonArticle $item) use (&$barcodesStr) {
                         $barcodesStr .= $item->article . ',';
-                    }
+                    });
+                    $barcodes[] = $barcodesStr;
+                }
 
-                    try {
-                    $response = Http::connectTimeout(30)
-                        ->retry(5, 10, function ($exception, $request) {
-                            return $exception instanceof RequestException;
-                        })
-                        ->withHeaders([
-                            //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
-                            "x-api-key" => getenv('SIMA_X_API_KEY')
-                        ])
-                        ->get('https://www.sima-land.ru/api/v3/item',
-                            [
-                                'per-page' => 100,
-                                'sid' => substr_replace($barcodesStr, "", -1),
-                                'expand' => 'stocks,min_qty'
-                            ]);
-                         } catch(RequestException $e) {
-                            $output->write($e->getMessage());
-                         }
-
-                    if (!$response instanceof ConnectException) {
-                        DB::beginTransaction();
-                        foreach ($response->json()['items'] as $item) {
-                            $stocks = Collection::make($item['stocks']);
-
-                            $itemStocks = $stocks->where('stock_id',2)->first();
-                            $itemsOverall = !is_null($itemStocks) ? $itemStocks['balance'] : 0;
-
-                            OzonArticle::query()
-                                ->where('article', $item['sid'])
-                                ->update([
-                                    'sima_price' => (float)$item['price'],
-                                    'sima_wholesale_price' => (float)$item['wholesale_price'],
-                                    'sima_order_minimum' => (int)$item['minimum_order_quantity'],
-                                    'sima_id' => (int)$item['id'],
-                                    'sima_stocks' => (int)$itemsOverall,
-                                    'is_synced' => true,
-                                    'per_package' => (int)$item['min_qty']
-                                ]);
+                try {
+                    /** @var Response  $response */
+                    foreach (static::generateGetItemsPool($barcodes) as $response) {
+                        if ($response instanceof Response) {
+                            if($response->ok()) {
+                                self::handleGetItemResponse($response);
+                            } else {
+                                $output->write('error!');
+                                $output->write($response->status());
+                            }
+                        } else {
+                            $output->write('error!');
+                            $output->write(get_class($response));
+                            die();
                         }
-                        DB::commit();
-                    } else {
-                        $output->write("connection timeout");
                     }
 
-                    $output->progressAdvance(100);
+                    $output->progressAdvance(1000);
                 } catch (Exception $exception) {
                     $output->write("Erorr: ". $exception->getMessage());
                 }
@@ -166,11 +143,54 @@ class Sima
     }
 //    function downloadReport()
 //    {
-//        $result = Http::withHeaders(
 //            self::HEADERS
 //        )->asJson()->get($this->fileUrl);
 //        dump(Collectio$result));
 //
 //    }
 
+    public static function generateGetItemsPool(array $barcodesChunk): array {
+        return Http::pool(function(Pool $pool) use($barcodesChunk) {
+            foreach ($barcodesChunk as $barcodeStr) {
+                $pool->timeout(120)->retry(3, 100)
+                    ->withHeaders([
+                        //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                        "x-api-key" => getenv('SIMA_X_API_KEY')
+                    ])
+                    ->get('https://www.sima-land.ru/api/v3/item',
+                        [
+                            'per-page' => 100,
+                            'sid' => substr_replace($barcodeStr, "", -1),
+                            'expand' => 'stocks,min_qty'
+                        ]);
+            }
+        });
+    }
+
+    public static function handleGetItemResponse(Response $response) {
+        try {
+            DB::beginTransaction();
+            foreach ($response->json()['items'] as $item) {
+                $stocks = Collection::make($item['stocks']);
+
+                $itemStocks = $stocks->where('stock_id',2)->first();
+                $itemsOverall = !is_null($itemStocks) ? $itemStocks['balance'] : 0;
+
+                OzonArticle::query()
+                    ->where('article', (int)$item['sid'])
+                    ->update([
+                        'sima_price' => (float)$item['price'],
+                        'sima_wholesale_price' => (float)$item['wholesale_price'],
+                        'sima_order_minimum' => (int)$item['minimum_order_quantity'],
+                        'sima_id' => (int)$item['id'],
+                        'sima_stocks' => (int)$itemsOverall,
+                        'is_synced' => true,
+                        'per_package' => (int)$item['min_qty']
+                    ]);
+            }
+            DB::commit();
+        } catch (\Throwable $e) {
+            dump($e->getMessage());
+        }
+    }
 }

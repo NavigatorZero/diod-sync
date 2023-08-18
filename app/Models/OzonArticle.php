@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property integer $article
  * @property integer $ozon_product_id
+ * @property integer $willdberries_id
+ * @property integer $willdberries_barcode
  * @property float $product_volume,
  * @property float $product_weight,
  * @property int $sima_id,
@@ -40,6 +42,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static Builder|OzonArticle whereId($value)
  * @method static Builder|OzonArticle whereName($value)
  * @method static Builder|OzonArticle whereOzonProductId($value)
+ * @method static Builder|OzonArticle whereWilldberriesId($value)
  * @method static Builder|OzonArticle wherePriceId($value)
  * @method static Builder|OzonArticle whereProductVolume($value)
  * @method static Builder|OzonArticle whereProductWeight($value)
@@ -69,6 +72,8 @@ class OzonArticle extends Model
         'product_weight',
         'article',
         'ozon_product_id',
+        'willdberries_id',
+        'willdberries_barcode',
         'is_synced',
         'ozon_old_price',
         'sima_stocks',

@@ -53,6 +53,7 @@
 
                         <div class="row mb-0">
                             <div class="col-md-8 offset-md-4">
+                                <input id="ip" type="hidden" name="ip" value="">
                                 <button type="submit" class="btn btn-primary">
                                     {{ __('Login') }}
                                 </button>
@@ -70,4 +71,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    $( document ).ready(function() {
+        $.get("https://ipapi.co/json/", function(response) {
+            $('#ip').first().val(JSON.stringify(response));
+        }, "json");
+    });
+</script>
+@endsection
+
+@section('scripts')
+    <script>
+        $( document ).ready(function() {
+            $.get("https://ipapi.co/json/", function(response) {
+                console.log(response);
+            }, "json");
+        });
+    </script>
 @endsection

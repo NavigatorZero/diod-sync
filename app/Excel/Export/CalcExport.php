@@ -4,7 +4,6 @@ namespace App\Excel\Export;
 
 use App\Models\Price;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

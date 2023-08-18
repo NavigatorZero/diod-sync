@@ -141,6 +141,25 @@
                                                 </output>
                                                 :00
                                             </div>
+
+                                            <div class="d-flex">
+                                                <input type="checkbox"
+                                                       class="form-check"
+                                                       name="is_ozon_sync"
+                                                       {{ $json->is_ozon_sync === true ? 'checked': '' }}
+                                                       id="isOzonSync"
+                                                >
+                                                <span class="form-label ps-2">Остатки на Ozon</span>
+                                            </div>
+                                            <div class="d-flex">
+                                                <input type="checkbox"
+                                                       class="form-check"
+                                                       name="is_wildberries_sync"
+                                                       {{ $json->is_wildberries_sync === true ? 'checked': '' }}
+                                                       id="isWildberriesSync"
+                                                >
+                                                <span class="form-label ps-2">Остатки на Wildberries</span>
+                                            </div>
                                         </div>
 
                                         <div class="text-center p-4">
@@ -148,6 +167,18 @@
                                                     class="btn btn-success">Cохранить настройки
                                             </button>
                                         </div>
+                                    </form>
+                                    <form action="{{route('api.post-new-articles')}}" method="post">
+                                        @csrf
+                                        <div class="ui-widget">
+                                            <input type="hidden" id="new_goods" name="new_goods_date"
+                                                   value="">
+                                            <label for="datep">Проверить новые товары за дату: </label>
+                                            <input id="datep"/>
+                                        </div>
+                                        <button type="submit p-4" name="submit_new_articles" id="submit_new_articles"
+                                                class="btn btn-success">Выгрузить новые товары
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -164,12 +195,22 @@
         $( document ).ready(function() {
             const checkbox = $('#isSecondSync').first();
             const output = $('#rangeInput_2').first();
+            const newGoods = $('#new_goods').first();
+            console.log(newGoods);
             checkbox.click(()=> {
-                console.log('here', output);
                     output.prop("disabled", !checkbox.is(':checked'));
-
             })
 
+            const datepicker = $('#datep').datepicker(
+                {
+                    onSelect:(date, datepicker) => {
+                        if (date != "") {
+                            $('#new_goods').first().val(date);
+                            console.log(newGoods.val())
+                        }
+                    }
+                }
+            );
         });
     </script>
 @endsection
