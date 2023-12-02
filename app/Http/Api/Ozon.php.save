@@ -16,8 +16,8 @@ class Ozon
     private const API_URL = 'https://api-seller.ozon.ru';
 
     private const HEADERS = [
-        'Client-Id' => '360163',
-        'Api-Key' => 'a84527fc-32e8-4a2e-a96c-1d480ec255dd'
+        'Client-Id' => '161605',
+        'Api-Key' => 'bf983f28-9ba7-4c07-b8e6-fad00dc1bf01'
     ];
 
     private const HEADERS2 = [
@@ -32,17 +32,11 @@ class Ozon
     public string $lastId = '';
 
 
-    /** @var int|\Closure самовывоз */
-    private int $pickup = 23890889223000;
-
-    /** @var int|\Closure курьер */
-    private int $courier = 23890904458000;
-
-
     function getArtcileList(OutputStyle $output, $visibility = "ARCHIVED")
     {
         $output->writeln("Getting Ozon items...");
 
+        $isLastRequest = false;
         $limit = 1000;
 
         $articleResponse = Http::withHeaders(
@@ -62,7 +56,7 @@ class Ozon
             $items = $articleResponse->json()['result']['items'];
             foreach ($items as $key => $value) {
                 if ($item = OzonArticle::where('ozon_product_id', $value['product_id'])->first()) {
-                    $item->forceDelete();
+                    $item->delete();
                 }
             }
             $this->lastId = $articleResponse->json()['result']['last_id'];
@@ -103,33 +97,34 @@ class Ozon
             self::HEADERS
         )
             ->asJson()
-            ->retry(5, 100)
+            ->retry(5, 1000)
             ->post(self::API_URL . '/v1/report/info',
                 [
                     'code' => $this->reportKey
                 ]);
 
         if ($result->json()['result']['status'] === 'success') {
+
             try {
                 $output->writeln("Ozon report parsing..");
                 $response = Http::withHeaders(
                     self::HEADERS
                 )
+                    ->retry(5, 1000)
                     ->get($result->json()['result']['file']);
 
                 $goods = str_getcsv($response, PHP_EOL);
                 unset($goods[0]);
+//            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+//            DB::table('ozon_articles')->truncate();
+//            DB::table('price')->truncate();
+//            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
                 for ($i = 1; $i <= count($goods); $i++) {
                     $vendorItem = str_getcsv($goods[$i], ";", '"','"');
-
-                    if(str_starts_with($vendorItem[0], "'УТМ") || str_starts_with($vendorItem[0], "УТМ" )) {
-                        continue;
-                    }
-
-                    $vendorCode = strlen($vendorItem[0]) === 12 ? (int)substr($vendorItem[0], 3, 7) : (int)substr($vendorItem[0], 3, 6);
-
+                    $vendorCode = strlen($vendorItem[0]) === 10 ? (int)substr($vendorItem[0], 2, 6) : (int)substr($vendorItem[0], 2, 7);
                     if ($vendorCode !== 0) {
+
                         $volume = isset($vendorItem[15]) ? str_replace(['"', "'"], "", $vendorItem[15]) : 0;
                         $weight = isset($vendorItem[16]) ? str_replace(['"', "'"], "", $vendorItem[16]) : 0;
                         $price = isset($vendorItem[22]) ? str_replace(['"', "'"], "", $vendorItem[22]) : 0;
@@ -143,14 +138,13 @@ class Ozon
                             'ozon_old_price' => (float)$price
                         ];
 
-                        if ($item = OzonArticle::withoutGlobalScopes()->where('article', $vendorCode)->first()) {
+                        if ($item = OzonArticle::whereArticle($vendorCode)->first()) {
                             if (!isset($vendorItem[15]) || !isset($vendorItem[16])) {
                                 $simaArr = Sima::getOneItemInfo($item);
                                 if (!isset($vendorItem[15])) $values['product_volume'] = $simaArr['product_volume'];
                                 if (!isset($vendorItem[16])) $values['product_weight'] = $simaArr['weight'] / 1000;
-                            }
 
-                            if($item->trashed()) $item->restore();
+                            }
 
                             $item->update($values);
                         } else {
@@ -163,7 +157,8 @@ class Ozon
 
                 $output->writeln("Ozon report parsed successfully");
             } catch (\Exception $exception) {
-                $output->writeln($exception->getMessage());
+		$output->writeln("Error with status ".$exception);
+                var_dump($exception);
             }
         } else {
             $output->writeln("Report with status " . $result->json()['result']['status'] . " repeating..");
@@ -172,7 +167,7 @@ class Ozon
                 $this->generateReport($output);
             }
 
-            sleep(300);
+            sleep(60*1000);
             $this->postReportInfo($output);
         }
     }
@@ -187,32 +182,31 @@ class Ozon
 
                 $res = [];
 
-                $chunk->map(function (\stdClass $item) use (&$res) {
-                   // $stocks = 0;
+                $chunk->map(function ($item) use (&$res) {
+                    $stocks = 0;
 
                     if($item->raketa_stocks > 0) {
                         $stocks = $item->raketa_stocks;
                     } else {
-                        $stocks = $item->sima_stocks;
 
-//                        if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
-//                            $stocks = 2;
-//                        }
-//
-//                        if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
-//                            $stocks = 5;
-//                        }
-//
-//                        if ($item->sima_stocks > 15) {
-//                            $stocks = 10;
-//                        }
+                        if ($item->sima_stocks >= 3 && $item->sima_stocks <= 9) {
+                            $stocks = 2;
+                        }
+
+                        if ($item->sima_stocks >= 10 && $item->sima_stocks <= 15) {
+                            $stocks = 5;
+                        }
+
+                        if ($item->sima_stocks > 15) {
+                            $stocks = 10;
+                        }
                     }
 
                     $res[] = [
                         "offer_id" => '66' . $item->article . '02',
                         "product_id" => $item->ozon_product_id,
                         "stock" => $stocks === 0 ? '0' : $stocks,
-                        "warehouse_id" => $this->pickup
+                        "warehouse_id" => 21858285092000
                     ];
                 });
                 try {
@@ -220,7 +214,6 @@ class Ozon
                         self::HEADERS
                     )
                         ->asJson()
-                        ->retry(3, 5000)
                         ->post(self::API_URL . '/v2/products/stocks',
                             [
                                 "stocks" => $res,
@@ -236,7 +229,7 @@ class Ozon
 //                            ]);
 
                     if ($response->status() !== 200) {
-                        $outputStyle->write('sending stocks error: ' . $response->json()['message']);
+                        $outputStyle->write('sending stocks error: ' . $response->status(). $res. $response);
                     }
 
                 } catch (\Exception $exception) {

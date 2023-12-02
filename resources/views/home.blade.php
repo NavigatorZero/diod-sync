@@ -88,6 +88,14 @@
                                             </a>
                                         </div>
                                     </div>
+
+                                    <div class="d-flex flex-column pt-4 pt-lg-4">
+                                        <a href="{{route('api.get-sima-prices')}}">
+                                            <button class="btn btn-success">
+                                                Выгрузить цены сималенда
+                                            </button>
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="col-4 container">
 
@@ -176,7 +184,7 @@
                                             <label for="datep">Проверить новые товары за дату: </label>
                                             <input id="datep"/>
                                         </div>
-                                        <button type="submit p-4" name="submit_new_articles" id="submit_new_articles"
+                                        <button type="submit pt-4" name="submit_new_articles" id="submit_new_articles"
                                                 class="btn btn-success">Выгрузить новые товары
                                         </button>
                                     </form>

@@ -24,9 +24,11 @@ class Sima
 
         OzonArticle::query()
             ->orderBy('id')
-            ->where("is_synced", false)
             ->when(!is_null($ids), function (Builder $builder) use ($ids) {
-                return $builder->whereIn('article', $ids);
+                return $builder->where('is_synced', true)->whereIn('article', $ids);
+            })
+            ->when(is_null($ids), function (Builder $builder) {
+                return $builder->where("is_synced", false);
             })
             ->chunk(1000, function (Collection $chunk) use ($output) {
 
@@ -78,7 +80,7 @@ class Sima
 
                 $chunk->map(function ($ozonArticle) use ($output) {
                     try {
-                        $response = Http::acceptJson()->timeout(100000)->withHeaders([
+                        $response = Http::acceptJson()->timeout(100)->withHeaders([
                             //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
                             "x-api-key" => getenv('SIMA_X_API_KEY')
                         ])
@@ -109,7 +111,7 @@ class Sima
     public static function getOneItemInfo(OzonArticle $article)
     {
         $response = Http::connectTimeout(30)
-            ->retry(5, 10000, function ($exception, $request) {
+            ->retry(5, 1000, function ($exception, $request) {
                 return $exception instanceof Exception;
             })
             ->withHeaders([
@@ -122,6 +124,17 @@ class Sima
                 ]);
 
         return $response->json();
+    }
+
+    public static function getOneItemInfoByBarcodeV5(int | string $simaBarcode) {
+        $response = Http::withHeaders([
+                //"Authorization" => "Bearer " . getenv('SIMA_API_KEY')
+                "x-api-key" => getenv('SIMA_X_API_KEY')
+            ])
+            ->get("https://www.sima-land.ru/api/v5/item/". $simaBarcode ."?by_sid=true");
+
+        return $response->json();
+
     }
 
 

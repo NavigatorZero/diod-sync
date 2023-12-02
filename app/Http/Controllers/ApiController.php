@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ObjectNotations\Sync;
 use App\Excel\Export\ArticleExport;
 use App\Excel\Export\CalcExport;
+use App\Excel\Export\PricesExport;
 use App\Excel\Export\StocksExport;
 use App\Http\Api\Ozon;
 use App\Http\Api\Sima;
@@ -82,6 +83,11 @@ class ApiController extends Controller
     public function calcPrice(): BinaryFileResponse
     {
         return Excel::download(new CalcExport(), 'prices.xlsx');
+    }
+
+    public function simaWholesalePrices(): BinaryFileResponse
+    {
+        return Excel::download(new PricesExport(), 'prices_wholesale.xlsx');
     }
 
     public function index(TelegramBot $bot): Application|Factory|View

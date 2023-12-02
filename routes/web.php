@@ -25,6 +25,7 @@ Route::post('/stocks', [ApiController::class, 'stocks'])->name('api.post-stocks'
 Route::post('/changeSyncSettings', [ApiController::class, 'changeSyncSettings'])->name('api.post-sync-settings')->middleware('auth');
 Route::post('/newArticles', [ApiController::class, 'getNewArticles'])->name('api.post-new-articles')->middleware('auth');
 Route::get('/calcPrice', [ApiController::class, 'calcPrice'])->name('api.get-price')->middleware('auth');
+Route::get('/simaPrices', [ApiController::class, 'simaWholesalePrices'])->name('api.get-sima-prices')->middleware('auth');
 Route::get('/calc', [ApiController::class, 'calc'])->middleware('auth');
 Route::get('/', [ApiController::class, 'index'])->middleware('auth');
 

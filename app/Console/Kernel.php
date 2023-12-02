@@ -37,6 +37,14 @@ class Kernel extends ConsoleKernel
             ->onSuccess(function (Stringable $output) {
                 dump('has been synced');
             });
+
+        $schedule->command('diod:wildberries:stocks')
+            ->timezone('Asia/Yekaterinburg')
+            ->hourlyAt("21")
+            ->sendOutputTo(\Storage::path('../logs/sync_low_stocks.log'))
+            ->onSuccess(function (Stringable $output) {
+                dump('has been synced');
+            });
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Api\Wildberries;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\App;
 
 class SendEmails extends Command
 {
@@ -11,7 +13,7 @@ class SendEmails extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'test:cmd';
 
     /**
      * The console command description.
@@ -27,6 +29,11 @@ class SendEmails extends Command
      */
     public function handle()
     {
+
+        $wildbberies = App::make(Wildberries::class);
+        $wildbberies->getArticleList();
+        $wildbberies->sendStocks($this->output);
+        $this->output->write('ok');
         return 0;
     }
 }

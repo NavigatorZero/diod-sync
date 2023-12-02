@@ -30,9 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $per_package
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- *
  * @property int|null $provider_whole_sale_price
- *
  * @property-read \App\Models\Price|null $price
  * @method static Builder|OzonArticle newModelQuery()
  * @method static Builder|OzonArticle newQuery()
@@ -52,8 +50,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static Builder|OzonArticle whereSimaStocks($value)
  * @method static Builder|OzonArticle whereSimaWholesalePrice($value)
  * @method static Builder|OzonArticle whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $price_id
+ * @property float $product_volume
+ * @property float $product_weight
+ * @property float|null $sima_wholesale_price
+ * @property int|null $sima_id
+ * @property int|null $sima_stocks
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static Builder|OzonArticle onlyTrashed()
+ * @method static Builder|OzonArticle whereDeletedAt($value)
+ * @method static Builder|OzonArticle whereIsSynced($value)
+ * @method static Builder|OzonArticle whereOzonOldPrice($value)
+ * @method static Builder|OzonArticle wherePerPackage($value)
+ * @method static Builder|OzonArticle whereRaketaStocks($value)
+ * @method static Builder|OzonArticle whereWilldberriesBarcode($value)
+ * @method static Builder|OzonArticle withTrashed()
+ * @method static Builder|OzonArticle withoutTrashed()
+ * @mixin \Eloquent
  */
 class OzonArticle extends Model
 {

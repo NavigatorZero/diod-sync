@@ -4,6 +4,7 @@ namespace App\Http\Api;
 
 use App\Models\OzonArticle;
 use Illuminate\Console\OutputStyle;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -43,13 +44,31 @@ class Wildberries
         $test = Http::withHeaders(self::$headers)->post(self::$apiUrl . '/content/v1/cards/cursor/list', $params)->json();
 
         foreach ($test['data']['cards'] as $card) {
-            $item = OzonArticle::where('article', '=', (int)substr(substr($card['vendorCode'], 2), 0, -2))
+            $barcode = (int)substr(substr(trim($card['vendorCode']), 2), 0, -2);
+            $item = OzonArticle::withoutglobalScopes()->where('article', '=', $barcode)
                 ->first();
-            if ($item) {
-                $item->willdberries_id = (int)$card['sizes'][0]['skus'][0];
-                $item->willdberries_barcode = (int)$card['nmID'];
-                $item->save();
+            if (!$item) {
+                $item = new OzonArticle();
+                $item->article = $barcode;
+                try {
+                    $simaInfo = Sima::getOneItemInfoByBarcodeV5($item->article);
+                    $item->sima_stocks = $simaInfo['balance'];
+                    $item->sima_id = $simaInfo['id'];
+                    $item->name = $simaInfo['name'];
+                    $item->product_volume = 0;
+                    $item->product_weight = 0;
+                    $item->sima_wholesale_price = $simaInfo['wholesale_price'];
+                    $item->is_synced = true;
+                } catch (\Exception $exception) {
+                    dump($exception->getMessage());
+                }
             }
+
+            if ($item->trashed()) $item->restore();
+            $item->willdberries_id = (int)$card['sizes'][0]['skus'][0];
+            $item->willdberries_barcode = (int)$card['nmID'];
+            $item->is_synced = true;
+            $item->save();
         }
 
         $pagination = $test['data']['cursor'];
@@ -60,42 +79,53 @@ class Wildberries
         return 'ok';
     }
 
-    function sendStocks(OutputStyle $outputStyle): void
+    function sendStocks(OutputStyle $outputStyle, Collection $ids = null): void
     {
         $outputStyle->writeln("Sending stocks to Wildbberies...");
         DB::table("ozon_articles")
             ->where('is_synced', true)
+            ->when(!is_null($ids), function (Builder $builder) use ($ids) {
+                return $builder->whereIn("article", $ids->toArray());
+            })
             ->whereNotNull('willdberries_barcode')
-            ->orderBy('id')
-            ->chunk(500, function (Collection $chunk) use ($outputStyle) {
-                $status = 500;
+            ->orderBy('id',"DESC")
+            ->chunk(1, function (Collection $chunk) use ($outputStyle) {
                 $res = ['stocks' => []];
 
                 $chunk->map(function (stdClass $item) use (&$res) {
                     $res['stocks'][] = [
-                        "sku" => $item->willdberries_barcode,
+                        "sku" => (string)$item->willdberries_id,
                         "amount" => $item->sima_stocks
                     ];
                 });
                 try {
-                    $status = Http::withHeaders(self::$headers)
-                        ->put(self::$apiUrl . "/api/v3/stocks/" . self::$warehouseId, $res)->status();
+                    $response = Http::withHeaders(self::$headers)
+                        ->put(self::$apiUrl . "/api/v3/stocks/" . self::$warehouseId, $res);
+
+                    $status = $response->status();
+                    if ($status !== 204) {
+                        //TODO remove wb articles which hasn't been found
+                        $outputStyle->write('error on  sending stocks!');
+                        dump($response->json());
+                    }
+                    $outputStyle->writeln($response->status());
 
                 } catch (\Exception $exception) {
                     $outputStyle->write($exception->getMessage());
                 }
-                return $status === 204;
             });
+        $outputStyle->writeln("stocks has been uploaded");
     }
 
-    function getLowStocksGoods(OutputStyle $output)
+    function updateLowStocks(OutputStyle $output)
     {
-        $articleIds = OzonArticle::where('is_synced', true)
+        $articles = OzonArticle::select()->where('is_synced', true)
             ->where('sima_stocks', '<=', '10')
             ->whereNotNull('willdberries_barcode')->pluck('article');
 
-        Sima::getItems($output, $articleIds);
+        Sima::getItems($output, $articles);
 
+        $this->sendStocks($output, $articles);
     }
 
 }

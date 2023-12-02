@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property float|null $commision
  * @property float|null $price_after
  * @property float|null $fbs
- * @mixin \Eloquent
  * @property int $id
  * @property float|null $min_price
  * @property float|null $last_mile
@@ -34,6 +33,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float|null $income
  * @method static Builder|Price whereHighway($value)
  * @method static Builder|Price whereIncome($value)
+ * @mixin \Eloquent
  */
 class Price extends Model
 {

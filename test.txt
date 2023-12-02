@@ -1,0 +1,53 @@
+Sync started in 2023-04-28 04:20:55
+   ParseError 
+
+  syntax error, unexpected token "[", expecting variable
+
+  at app/Http/Api/Sima.php:190
+    186▕ //        dump(Collectio$result));
+    187▕ //
+    188▕ //    }
+    189▕ 
+  ➜ 190▕     public static function generateGetItemsPool([] $barcodesChunk) {
+    191▕         $responses = Http::pool(function(Pool $pool) use($barcodesChunk) {
+    192▕             foreach ($barcodesChunk as $barcodeStr) {
+    193▕                 $pool->retry(5, 10)
+    194▕                     ->withHeaders([
+
+      [2m+1 vendor frames [22m
+  2   app/Console/Commands/GetData.php:41
+      Composer\Autoload\ClassLoader::loadClass()
+
+      [2m+13 vendor frames [22m
+  16  artisan:37
+      Illuminate\Foundation\Console\Kernel::handle()
+Sync started in 2023-04-28 04:21:09
+   ParseError 
+
+  syntax error, unexpected token "[", expecting variable
+
+  at app/Http/Api/Sima.php:190
+    186▕ //        dump(Collectio$result));
+    187▕ //
+    188▕ //    }
+    189▕ 
+  ➜ 190▕     public static function generateGetItemsPool([] $barcodesChunk) {
+    191▕         $responses = Http::pool(function(Pool $pool) use($barcodesChunk) {
+    192▕             foreach ($barcodesChunk as $barcodeStr) {
+    193▕                 $pool->retry(5, 10)
+    194▕                     ->withHeaders([
+
+      [2m+1 vendor frames [22m
+  2   app/Console/Commands/GetData.php:41
+      Composer\Autoload\ClassLoader::loadClass()
+
+      [2m+13 vendor frames [22m
+  16  artisan:37
+      Illuminate\Foundation\Console\Kernel::handle()
+Sync started in 2023-04-28 04:22:47Remove archived started..Getting Ozon items...
+Getting Ozon items...
+Getting Ozon items...
+Getting Ozon items...
+Getting Ozon items...
+Getting Ozon items...
+Getting Ozon items...
